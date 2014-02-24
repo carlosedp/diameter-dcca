@@ -63,6 +63,13 @@
 -define(CALLBACK_MOD, client_cb).
 -define(DIAMETER_DICT_CCRA, rfc4006_cc).
 
+-define(CCR_INITIAL, ?'RFC4006_CC_CC-REQUEST-TYPE_INITIAL_REQUEST').
+-define(CCR_UPDATE, ?'RFC4006_CC_CC-REQUEST-TYPE_UPDATE_REQUEST').
+-define(CCR_TERMINATE, ?'RFC4006_CC_CC-REQUEST-TYPE_TERMINATION_REQUEST').
+
+-define(MSISDN, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164').
+-define(IMSI, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
+
 -define(L, atom_to_list).
 
 %% The service configuration. As in the server example, a client
@@ -103,11 +110,54 @@ call(Name) ->
     CCR = #rfc4006_cc_CCR{
             'Session-Id' = SId,
             'Auth-Application-Id' = 4,
-            'CC-Request-Type' = 1,
+            'CC-Request-Type' = ?CCR_INITIAL,
             'CC-Request-Number' = 0,
             'Service-Context-Id' = "diameter.com",
-            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {'Subscription-Id-Type' = ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164', 
-                                 'Subscription-Id-Data' = "5511985231234"
+            %'Termination-Cause' = [] %% Only used on TERMINATE
+            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+                                    'Subscription-Id-Type' = ?'MSISDN', 
+                                    'Subscription-Id-Data' = "5511985231234"
+                                }],
+            'Multiple-Services-Indicator' = [1],
+            'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+                                    %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
+                                        %'Tariff-Change-Usage' = [], 
+                                        'CC-Time' = [],
+                                        'CC-Money' = [], 
+                                        'CC-Total-Octets' = [],
+                                        'CC-Input-Octets' = [], 
+                                        'CC-Output-Octets' = [],
+                                        'CC-Service-Specific-Units' = [], 
+                                        'AVP' = []
+                                    }],
+                                    'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
+                                        %'Tariff-Change-Usage' = [], 
+                                        'CC-Time' = [],
+                                        'CC-Money' = [], 
+                                        'CC-Total-Octets' = [],
+                                        'CC-Input-Octets' = [], 
+                                        'CC-Output-Octets' = [],
+                                        'CC-Service-Specific-Units' = [], 
+                                        'AVP' = []
+                                    }], 
+                                    'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+                                        %'Tariff-Change-Usage' = [], 
+                                        'CC-Time' = [],
+                                        'CC-Money' = [], 
+                                        'CC-Total-Octets' = [],
+                                        'CC-Input-Octets' = [], 
+                                        'CC-Output-Octets' = [],
+                                        'CC-Service-Specific-Units' = [], 
+                                        'AVP' = []
+                                    }],
+                                    %'Tariff-Change-Usage' = [], 
+                                    'Service-Identifier' = [1],
+                                    'Rating-Group' = [100]
+                                    %'G-S-U-Pool-Reference' = [],
+                                    %'Validity-Time' = [], 
+                                    %'Result-Code' = [],
+                                    %'Final-Unit-Indication' = [], 
+                                    
                                 }]
             },
         diameter:call(Name, ?APP_ALIAS, CCR, []).
