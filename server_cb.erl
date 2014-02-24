@@ -78,7 +78,7 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
 %% ... or one that wasn't. 3xxx errors are answered by diameter itself
 %% but these are 5xxx errors for which we must contruct a reply.
 %% diameter will set Result-Code and Failed-AVP's.
-handle_request(#diameter_packet{msg = Req}, _SvcName, {_, Caps})
+handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
   when is_record(Req, rfc4006_cc_CCR) ->
     #diameter_caps{origin_host = {OH,_},
                    origin_realm = {OR,_}}
@@ -87,7 +87,7 @@ handle_request(#diameter_packet{msg = Req}, _SvcName, {_, Caps})
                     'CC-Request-Type' = RT,
                     'CC-Request-Number'= RN}
         = Req,
-    io:format("CCR Err: ~p~n", [Req]),
+    io:format("CCR Err: ~p~n", [Err]),
     {reply, answer(err, RT, RN, Id, OH, OR)};
 
 %% Should really reply to other base messages that we don't support

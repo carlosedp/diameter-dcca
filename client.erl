@@ -98,13 +98,17 @@ connect(T) ->
 %% call/1
 
 call(Name) ->
+    io:format("Called CALL~n"),
     SId = diameter:session_id(?L(Name)),
     CCR = #rfc4006_cc_CCR{
             'Session-Id' = SId,
             'Auth-Application-Id' = 4,
             'CC-Request-Type' = 1,
             'CC-Request-Number' = 0,
-            'Service-Context-Id' = "diameter.com"
+            'Service-Context-Id' = "diameter.com",
+            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {'Subscription-Id-Type' = ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164', 
+                                 'Subscription-Id-Data' = "5511985231234"
+                                }]
             },
         diameter:call(Name, ?APP_ALIAS, CCR, []).
 
