@@ -108,58 +108,58 @@ call(Name) ->
     io:format("Called CALL~n"),
     SId = diameter:session_id(?L(Name)),
     CCR = #rfc4006_cc_CCR{
-            'Session-Id' = SId,
-            'Auth-Application-Id' = 4,
-            'CC-Request-Type' = ?CCR_INITIAL,
-            'CC-Request-Number' = 0,
-            'Service-Context-Id' = "diameter.com",
-            %'Termination-Cause' = [] %% Only used on TERMINATE
-            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
-                                    'Subscription-Id-Type' = ?'MSISDN', 
-                                    'Subscription-Id-Data' = "5511985231234"
-                                }],
-            'Multiple-Services-Indicator' = [1],
-            'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-                                    %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
-                                        %'Tariff-Change-Usage' = [], 
-                                        'CC-Time' = [],
-                                        'CC-Money' = [], 
-                                        'CC-Total-Octets' = [],
-                                        'CC-Input-Octets' = [], 
-                                        'CC-Output-Octets' = [],
-                                        'CC-Service-Specific-Units' = [], 
-                                        'AVP' = []
-                                    }],
-                                    'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
-                                        %'Tariff-Change-Usage' = [], 
-                                        'CC-Time' = [],
-                                        'CC-Money' = [], 
-                                        'CC-Total-Octets' = [],
-                                        'CC-Input-Octets' = [], 
-                                        'CC-Output-Octets' = [],
-                                        'CC-Service-Specific-Units' = [], 
-                                        'AVP' = []
-                                    }], 
-                                    'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-                                        %'Tariff-Change-Usage' = [], 
-                                        'CC-Time' = [],
-                                        'CC-Money' = [], 
-                                        'CC-Total-Octets' = [],
-                                        'CC-Input-Octets' = [], 
-                                        'CC-Output-Octets' = [],
-                                        'CC-Service-Specific-Units' = [], 
-                                        'AVP' = []
-                                    }],
-                                    %'Tariff-Change-Usage' = [], 
-                                    'Service-Identifier' = [1],
-                                    'Rating-Group' = [100]
-                                    %'G-S-U-Pool-Reference' = [],
-                                    %'Validity-Time' = [], 
-                                    %'Result-Code' = [],
-                                    %'Final-Unit-Indication' = [], 
-                                    
-                                }]
-            },
+        'Session-Id' = SId,
+        'Auth-Application-Id' = 4,
+        'CC-Request-Type' = ?CCR_INITIAL,
+        'CC-Request-Number' = 0,
+        'Service-Context-Id' = "diameter.com",
+        %'Termination-Cause' = [] %% Only used on TERMINATE
+        'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+                                'Subscription-Id-Type' = ?'MSISDN', 
+                                'Subscription-Id-Data' = "5511985231234"
+                            }],
+        'Multiple-Services-Indicator' = [1],
+        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+            %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
+                %'Tariff-Change-Usage' = [], 
+                %'CC-Time' = [],
+                %'CC-Money' = [], 
+                %'CC-Total-Octets' = [],
+                %'CC-Input-Octets' = [], 
+                %'CC-Output-Octets' = [],
+                %'CC-Service-Specific-Units' = [], 
+                %'AVP' = []
+            %}],
+            'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
+                %'Tariff-Change-Usage' = [], 
+                'CC-Time' = [],
+                'CC-Money' = [], 
+                'CC-Total-Octets' = [],
+                'CC-Input-Octets' = [], 
+                'CC-Output-Octets' = [],
+                'CC-Service-Specific-Units' = [], 
+                'AVP' = []
+            }], 
+            'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+                %'Tariff-Change-Usage' = [], 
+                'CC-Time' = [],
+                'CC-Money' = [], 
+                'CC-Total-Octets' = [],
+                'CC-Input-Octets' = [], 
+                'CC-Output-Octets' = [],
+                'CC-Service-Specific-Units' = [], 
+                'AVP' = []
+            }],
+            %'Tariff-Change-Usage' = [], 
+            'Service-Identifier' = [1],
+            'Rating-Group' = [100]
+            %'G-S-U-Pool-Reference' = [],
+            %'Validity-Time' = [], 
+            %'Result-Code' = [],
+            %'Final-Unit-Indication' = [], 
+                                
+            }]
+        },
         diameter:call(Name, ?APP_ALIAS, CCR, []).
 
 
@@ -171,14 +171,14 @@ call() ->
 cast(Name) ->
     SId = diameter:session_id(?L(Name)),
     CCR = ['CCR',
-           {'Session-Id', SId},
-            %'Session-Id' = diameter:session_id(?L(who)),
-            {'Auth-Application-Id', 4},
-            {'CC-Request-Type', 1},
-            {'CC-Request-Number', 0},
-            {'Service-Context-Id', "diameter.com"}
-            ],
-        diameter:call(Name, ?APP_ALIAS, CCR, [detach]).
+       {'Session-Id', SId},
+        %'Session-Id' = diameter:session_id(?L(who)),
+        {'Auth-Application-Id', 4},
+        {'CC-Request-Type', 1},
+        {'CC-Request-Number', 0},
+        {'Service-Context-Id', "diameter.com"}
+    ],
+    diameter:call(Name, ?APP_ALIAS, CCR, [detach]).
 
 cast() ->
     cast(?SVC_NAME).

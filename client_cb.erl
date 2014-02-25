@@ -52,9 +52,8 @@ pick_peer([Peer | _], _, _SvcName, _State) ->
 
 prepare_request(#diameter_packet{msg = ['CCR' = T | Avps]}, _, {_, Caps}) ->
     #diameter_caps{origin_host = {OH, DH},
-                   origin_realm = {OR, DR}}
-        = Caps,
-
+                   origin_realm = {OR, DR}
+    } = Caps,
     {send, [T, {'Origin-Host', OH},
                {'Origin-Realm', OR},
                {'Destination-Host', [DH]},
@@ -63,13 +62,13 @@ prepare_request(#diameter_packet{msg = ['CCR' = T | Avps]}, _, {_, Caps}) ->
 
 prepare_request(#diameter_packet{msg = Rec}, _, {_, Caps}) ->
     #diameter_caps{origin_host = {OH, DH},
-                   origin_realm = {OR, DR}}
-        = Caps,
+                   origin_realm = {OR, DR}
+    } = Caps,
 
     {send, Rec#rfc4006_cc_CCR{'Origin-Host' = OH,
-                                 'Origin-Realm' = OR,
-                                 'Destination-Host' = [DH],
-                                 'Destination-Realm' = DR}}.
+                              'Origin-Realm' = OR,
+                              'Destination-Host' = [DH],
+                              'Destination-Realm' = DR}}.
 
 %% prepare_retransmit/3
 

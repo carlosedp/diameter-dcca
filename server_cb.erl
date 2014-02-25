@@ -27,6 +27,13 @@
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
 -include_lib("rfc4006_cc.hrl").
 
+-define(CCR_INITIAL, ?'RFC4006_CC_CC-REQUEST-TYPE_INITIAL_REQUEST').
+-define(CCR_UPDATE, ?'RFC4006_CC_CC-REQUEST-TYPE_UPDATE_REQUEST').
+-define(CCR_TERMINATE, ?'RFC4006_CC_CC-REQUEST-TYPE_TERMINATION_REQUEST').
+
+-define(MSISDN, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164').
+-define(IMSI, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
+
 %% diameter callbacks
 -export([peer_up/3,
          peer_down/3,
@@ -66,14 +73,54 @@ handle_error(_Reason, _Request, _SvcName, _Peer) ->
 handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
   when is_record(Req, rfc4006_cc_CCR) ->
     #diameter_caps{origin_host = {OH,_},
-                   origin_realm = {OR,_}}
-        = Caps,
-    #rfc4006_cc_CCR{'Session-Id' = Id,
-                    'CC-Request-Type' = RT,
-                    'CC-Request-Number'= RN}
-        = Req,
+                   origin_realm = {OR,_}
+    } = Caps,
     io:format("CCR OK: ~p~n", [Req]),
-    {reply, answer(ok, RT, RN, Id, OH, OR)};
+    #rfc4006_cc_CCR{
+      'Session-Id' = Id,
+      'Auth-Application-Id' = 4,
+      'CC-Request-Type' = RT,
+      'CC-Request-Number' = RN,
+      'Service-Context-Id' = ServiceContextId,
+      'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+          'Subscription-Id-Type' = ?'MSISDN', 
+          'Subscription-Id-Data' = MSISDN}]
+    } = Req,
+
+    io:format("CCR CC-Request-Type: ~p~n", [Req#rfc4006_cc_CCR.'CC-Request-Type']),    
+    case Req#rfc4006_cc_CCR.'CC-Request-Type' of
+      CCR_INITIAL ->
+        #rfc4006_cc_CCR{
+          %'Termination-Cause' = [] %% Only used on TERMINATE
+          %'Multiple-Services-Indicator' = [_],
+          'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+            %'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
+            %    'CC-Total-Octets' = [],
+            %    'CC-Input-Octets' = [], 
+            %    'CC-Output-Octets' = [],
+            %    'CC-Service-Specific-Units' = [], 
+            %    'AVP' = []
+            %}], 
+            %'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+            %    'CC-Total-Octets' = [USU_TotalOctets],
+            %    'CC-Input-Octets' = [USU_InputOctets], 
+            %    'CC-Output-Octets' = [USU_OutputOctets],
+            %    'CC-Service-Specific-Units' = [USU_SpecificUnits]
+            %}],
+            %'Tariff-Change-Usage' = [], 
+            'Service-Identifier' = [ServiceID],
+            'Rating-Group' = [RatingGroup]
+            %'G-S-U-Pool-Reference' = [],
+            %'Validity-Time' = [], 
+            %'Result-Code' = [],
+            %'Final-Unit-Indication' = [], 
+            
+        }|_]
+      } = Req
+      %CCR_UPDATE ->
+      %CCR_TERMINATE ->
+    end,
+    {reply, answer(ok, RT, RN, Id, OH, OR, ServiceID, RatingGroup)};
 
 %% ... or one that wasn't. 3xxx errors are answered by diameter itself
 %% but these are 5xxx errors for which we must contruct a reply.
@@ -88,7 +135,7 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
                     'CC-Request-Number'= RN}
         = Req,
     io:format("CCR Err: ~p~n", [Err]),
-    {reply, answer(err, RT, RN, Id, OH, OR)};
+    {reply, answer_err(RT, RN, Id, OH, OR)};
 
 %% Should really reply to other base messages that we don't support
 %% but simply discard them instead.
@@ -102,16 +149,36 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
 %% typically just choose one, and this has nothing to do with the how
 %% client.erl sends.
 
-answer(ok, RT, RN, Id, OH, OR) ->
-    #rfc4006_cc_CCA{'Result-Code' = 2001, %% DIAMETER_SUCCESS
-                    'Origin-Host' = OH,
-                    'Origin-Realm' = OR,
-                    'Session-Id' = Id,
-                    'Auth-Application-Id' = 4,
-                    'CC-Request-Type' = RT,
-                    'CC-Request-Number' = RN};
-
-answer(err, RT, RN, Id, OH, OR) ->
+answer(ok, RT, RN, Id, OH, OR, ServiceID, RatingGroup) ->
+  #rfc4006_cc_CCA{
+    'Result-Code' = 2001, %% DIAMETER_SUCCESS
+    'Origin-Host' = OH,
+    'Origin-Realm' = OR,
+    'Session-Id' = Id,
+    'Auth-Application-Id' = 4,
+    'CC-Request-Type' = RT,
+    'CC-Request-Number' = RN,
+    %'Termination-Cause' = [] %% Only used on TERMINATE
+    %'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+    %                        'Subscription-Id-Type' = ?'MSISDN', 
+    %                        'Subscription-Id-Data' = MSISDN
+    %                    }],
+    'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+      'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
+        'CC-Total-Octets' = [300000],
+        'CC-Input-Octets' = [], 
+        'CC-Output-Octets' = [],
+        'CC-Service-Specific-Units' = [], 
+        'AVP' = []
+      }], 
+      'Service-Identifier' = [ServiceID],
+      'Rating-Group' = [RatingGroup],
+      'Validity-Time' = [3600], 
+      'Result-Code' = [2001]
+      %'Final-Unit-Indication' = [],
+    }]
+  }.
+answer_err(RT, RN, Id, OH, OR) ->
     #rfc4006_cc_CCA{'Result-Code' = 5012, %% DIAMETER_UNABLE_TO_COMPLY
                     'Origin-Host' = OH,
                     'Origin-Realm' = OR,
