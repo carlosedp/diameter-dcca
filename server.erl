@@ -46,10 +46,17 @@
          listen/1,
          stop/0]).
 
+-define(DIA_STATS_TAB, dcca_stats).
+-define(DIA_STATS_COUNTERS, [event_OK, event_ERR]).
+
+%% Server parameters
 -define(SVC_NAME,     ?MODULE).
 -define(APP_ALIAS,    ?MODULE).
 -define(CALLBACK_MOD, server_cb).
 -define(DIAMETER_DICT_CCRA, rfc4006_cc).
+-define(DIAMETER_IP, "127.0.0.1").
+-define(DIAMETER_PORT, 3868).
+-define(DIAMETER_PROTO, tcp).
 
 %% The service configuration. In a server supporting multiple Diameter
 %% applications each application may have its own, although they could all
@@ -59,32 +66,46 @@
                         {'Vendor-Id', 193},
                         {'Product-Name', "Server"},
                         {'Auth-Application-Id', [4]},
-                        {application, [{alias, ?APP_ALIAS},
-                                       {dictionary, ?DIAMETER_DICT_CCRA},
-                                       {module, ?CALLBACK_MOD}]}]).
+                        {application,
+                            [{alias, ?APP_ALIAS},
+                            {dictionary, ?DIAMETER_DICT_CCRA},
+                            {module, ?CALLBACK_MOD}]
+                        }]).
+
 
 %% start/1
 
 start(Name)
     when is_atom(Name) ->
-        peer:start(Name, ?SERVICE(Name)),
-    listen(tcp).
+        diameter:start(),
+        common_stats:init(?DIA_STATS_TAB, ?DIA_STATS_COUNTERS),
+        diameter:start_service(Name, ?SERVICE(Name)),
+        listen({address, ?DIAMETER_PROTO, ?DIAMETER_IP, ?DIAMETER_PORT}).
 
 start() ->
     start(?SVC_NAME).
 
+
 %% listen/2
 
-listen(Name, T) ->
-    peer:listen(Name, T).
+listen(Name, {address, Protocol, IPAddr, Port}) ->
+    {ok, IP} = inet_parse:address(IPAddr),
+    TransportOpts =  [{transport_module, tmod(Protocol)},
+                      {transport_config, [{reuseaddr, true},
+                      {ip, IP}, {port, Port}]}],
+    diameter:add_transport(Name, {listen, TransportOpts}).
 
-listen(T) ->
-    listen(?SVC_NAME, T).
+listen(Address) ->
+    listen(?SVC_NAME, Address).
 
 %% stop/1
 
 stop(Name) ->
-    peer:stop(Name).
+    common_stats:terminate(?DIA_STATS_TAB),
+    diameter:stop_service(Name).
 
 stop() ->
     stop(?SVC_NAME).
+
+tmod(tcp)  -> diameter_tcp;
+tmod(sctp) -> diameter_sctp.

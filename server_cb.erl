@@ -31,6 +31,8 @@
 -define(CCR_UPDATE, ?'RFC4006_CC_CC-REQUEST-TYPE_UPDATE_REQUEST').
 -define(CCR_TERMINATE, ?'RFC4006_CC_CC-REQUEST-TYPE_TERMINATION_REQUEST').
 
+-define(DIA_STATS_TAB, dcca_stats).
+
 -define(MSISDN, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164').
 -define(IMSI, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
 
@@ -83,42 +85,45 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
       'CC-Request-Number' = RN,
       'Service-Context-Id' = ServiceContextId,
       'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
-          'Subscription-Id-Type' = ?'MSISDN', 
+          'Subscription-Id-Type' = ?'MSISDN',
           'Subscription-Id-Data' = MSISDN}]
     } = Req,
 
-    io:format("CCR CC-Request-Type: ~p~n", [Req#rfc4006_cc_CCR.'CC-Request-Type']),    
+    %io:format("CCR CC-Request-Type: ~p~n", [Req#rfc4006_cc_CCR.'CC-Request-Type']),
     case Req#rfc4006_cc_CCR.'CC-Request-Type' of
       CCR_INITIAL ->
-        #rfc4006_cc_CCR{
+        common_stats:inc(?DIA_STATS_TAB, dia_input_initial_OK),
+        #rfc4006_cc_CCR {
           %'Termination-Cause' = [] %% Only used on TERMINATE
           %'Multiple-Services-Indicator' = [_],
           'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
             %'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
             %    'CC-Total-Octets' = [],
-            %    'CC-Input-Octets' = [], 
+            %    'CC-Input-Octets' = [],
             %    'CC-Output-Octets' = [],
-            %    'CC-Service-Specific-Units' = [], 
+            %    'CC-Service-Specific-Units' = [],
             %    'AVP' = []
-            %}], 
+            %}],
             %'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
             %    'CC-Total-Octets' = [USU_TotalOctets],
-            %    'CC-Input-Octets' = [USU_InputOctets], 
+            %    'CC-Input-Octets' = [USU_InputOctets],
             %    'CC-Output-Octets' = [USU_OutputOctets],
             %    'CC-Service-Specific-Units' = [USU_SpecificUnits]
             %}],
-            %'Tariff-Change-Usage' = [], 
+            %'Tariff-Change-Usage' = [],
             'Service-Identifier' = [ServiceID],
             'Rating-Group' = [RatingGroup]
             %'G-S-U-Pool-Reference' = [],
-            %'Validity-Time' = [], 
+            %'Validity-Time' = [],
             %'Result-Code' = [],
-            %'Final-Unit-Indication' = [], 
-            
+            %'Final-Unit-Indication' = [],
+
         }|_]
       } = Req
       %CCR_UPDATE ->
+      %common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
       %CCR_TERMINATE ->
+      %common_stats:inc(?DIA_STATS_TAB, dia_input_terminate_OK),
     end,
     {reply, answer(ok, RT, RN, Id, OH, OR, ServiceID, RatingGroup)};
 
@@ -150,6 +155,7 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
 %% client.erl sends.
 
 answer(ok, RT, RN, Id, OH, OR, ServiceID, RatingGroup) ->
+  common_stats:inc(?DIA_STATS_TAB, event_OK),
   #rfc4006_cc_CCA{
     'Result-Code' = 2001, %% DIAMETER_SUCCESS
     'Origin-Host' = OH,
@@ -160,25 +166,26 @@ answer(ok, RT, RN, Id, OH, OR, ServiceID, RatingGroup) ->
     'CC-Request-Number' = RN,
     %'Termination-Cause' = [] %% Only used on TERMINATE
     %'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
-    %                        'Subscription-Id-Type' = ?'MSISDN', 
+    %                        'Subscription-Id-Type' = ?'MSISDN',
     %                        'Subscription-Id-Data' = MSISDN
     %                    }],
     'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
       'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
         'CC-Total-Octets' = [300000],
-        'CC-Input-Octets' = [], 
+        'CC-Input-Octets' = [],
         'CC-Output-Octets' = [],
-        'CC-Service-Specific-Units' = [], 
+        'CC-Service-Specific-Units' = [],
         'AVP' = []
-      }], 
+      }],
       'Service-Identifier' = [ServiceID],
       'Rating-Group' = [RatingGroup],
-      'Validity-Time' = [3600], 
+      'Validity-Time' = [3600],
       'Result-Code' = [2001]
       %'Final-Unit-Indication' = [],
     }]
   }.
 answer_err(RT, RN, Id, OH, OR) ->
+    common_stats:inc(?DIA_STATS_TAB, event_ERR),
     #rfc4006_cc_CCA{'Result-Code' = 5012, %% DIAMETER_UNABLE_TO_COMPLY
                     'Origin-Host' = OH,
                     'Origin-Realm' = OR,

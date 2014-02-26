@@ -62,6 +62,9 @@
 -define(APP_ALIAS,    ?MODULE).
 -define(CALLBACK_MOD, client_cb).
 -define(DIAMETER_DICT_CCRA, rfc4006_cc).
+-define(DIAMETER_IP, "127.0.0.1").
+-define(DIAMETER_PORT, 3868).
+-define(DIAMETER_PROTO, tcp).
 
 -define(CCR_INITIAL, ?'RFC4006_CC_CC-REQUEST-TYPE_INITIAL_REQUEST').
 -define(CCR_UPDATE, ?'RFC4006_CC_CC-REQUEST-TYPE_UPDATE_REQUEST').
@@ -88,19 +91,32 @@
 
 start(Name)
     when is_atom(Name) ->
-        peer:start(Name, ?SERVICE(Name)),
-    connect(tcp).
+        diameter:start(),
+        diameter:start_service(Name, ?SERVICE(Name)),
+        connect({address, ?DIAMETER_PROTO, ?DIAMETER_IP, ?DIAMETER_PORT}).
 
 start() ->
     start(?SVC_NAME).
 
 %% connect/2
 
-connect(Name, T) ->
-    peer:connect(Name, T).
+connect(Name, {address, Protocol, IPAddr, Port}) ->
+    {ok, IP} = inet_parse:address(IPAddr),
+    TransportOpts =  [{transport_module, tmod(Protocol)},
+                      {transport_config, [
+                        {reuseaddr, true},
+                        {raddr, IP},
+                        %{ip, {IP}},
+                        {rport, Port}]}
+                    ],
+    diameter:add_transport(Name, {connect, [{reconnect_timer, 5000} | TransportOpts]}).
 
-connect(T) ->
-    connect(?SVC_NAME, T).
+
+connect(Address) ->
+    connect(?SVC_NAME, Address).
+
+tmod(tcp)  -> diameter_tcp;
+tmod(sctp) -> diameter_sctp.
 
 %% call/1
 
@@ -115,49 +131,49 @@ call(Name) ->
         'Service-Context-Id' = "diameter.com",
         %'Termination-Cause' = [] %% Only used on TERMINATE
         'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
-                                'Subscription-Id-Type' = ?'MSISDN', 
+                                'Subscription-Id-Type' = ?'MSISDN',
                                 'Subscription-Id-Data' = "5511985231234"
                             }],
         'Multiple-Services-Indicator' = [1],
         'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
             %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
-                %'Tariff-Change-Usage' = [], 
+                %'Tariff-Change-Usage' = [],
                 %'CC-Time' = [],
-                %'CC-Money' = [], 
+                %'CC-Money' = [],
                 %'CC-Total-Octets' = [],
-                %'CC-Input-Octets' = [], 
+                %'CC-Input-Octets' = [],
                 %'CC-Output-Octets' = [],
-                %'CC-Service-Specific-Units' = [], 
+                %'CC-Service-Specific-Units' = [],
                 %'AVP' = []
             %}],
             'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
-                %'Tariff-Change-Usage' = [], 
+                %'Tariff-Change-Usage' = [],
                 'CC-Time' = [],
-                'CC-Money' = [], 
+                'CC-Money' = [],
                 'CC-Total-Octets' = [],
-                'CC-Input-Octets' = [], 
+                'CC-Input-Octets' = [],
                 'CC-Output-Octets' = [],
-                'CC-Service-Specific-Units' = [], 
-                'AVP' = []
-            }], 
-            'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-                %'Tariff-Change-Usage' = [], 
-                'CC-Time' = [],
-                'CC-Money' = [], 
-                'CC-Total-Octets' = [],
-                'CC-Input-Octets' = [], 
-                'CC-Output-Octets' = [],
-                'CC-Service-Specific-Units' = [], 
+                'CC-Service-Specific-Units' = [],
                 'AVP' = []
             }],
-            %'Tariff-Change-Usage' = [], 
+            'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+                %'Tariff-Change-Usage' = [],
+                'CC-Time' = [],
+                'CC-Money' = [],
+                'CC-Total-Octets' = [],
+                'CC-Input-Octets' = [],
+                'CC-Output-Octets' = [],
+                'CC-Service-Specific-Units' = [],
+                'AVP' = []
+            }],
+            %'Tariff-Change-Usage' = [],
             'Service-Identifier' = [1],
             'Rating-Group' = [100]
             %'G-S-U-Pool-Reference' = [],
-            %'Validity-Time' = [], 
+            %'Validity-Time' = [],
             %'Result-Code' = [],
-            %'Final-Unit-Indication' = [], 
-                                
+            %'Final-Unit-Indication' = [],
+
             }]
         },
         diameter:call(Name, ?APP_ALIAS, CCR, []).
@@ -186,7 +202,7 @@ cast() ->
 %% stop/1
 
 stop(Name) ->
-    peer:stop(Name).
+    diameter:stop_service(Name).
 
 stop() ->
     stop(?SVC_NAME).
