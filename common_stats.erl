@@ -77,8 +77,8 @@ do_inc(Tab, Key, Incr) ->
 	try ets:update_counter(Tab, Key, Incr)
 	catch
 		error:badarg ->
-			%[{global_counters, Counters}] = ets:lookup(Tab, global_counters),
-			%ets:insert(Tab, {global_counters, [Key|Counters]}),
+			[{global_counters, Counters}] = ets:lookup(Tab, global_counters),
+			ets:insert(Tab, {global_counters, [Key|Counters]}),
 			ets:insert(Tab, {Key, Incr}),
 			Incr
 	end.
