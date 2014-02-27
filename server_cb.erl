@@ -93,7 +93,7 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     StartTime = timestamp(EventTimestamp),
     case MSCC of
       [Data] ->
-        MSCC_Data = process_mscc(Req#rfc4006_cc_CCR.'CC-Request-Type', [Data], {"APN.com", "7241234567890", MSISDN, "10.0.0.1", Id, StartTime});
+        MSCC_Data = process_mscc(RT, [Data], {"APN.com", "7241234567890", MSISDN, "10.0.0.1", Id, StartTime});
       [] ->
         MSCC_Data = {}
     end,
@@ -127,7 +127,6 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
 %%
 process_mscc(?CCR_INITIAL, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_initial_OK),
-    io:format("MSCC: ~s~n", [MSCC]),
     [#'rfc4006_cc_Multiple-Services-Credit-Control' {
         'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
             'CC-Total-Octets' = USU_TotalOctets
