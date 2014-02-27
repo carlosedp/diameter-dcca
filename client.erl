@@ -134,48 +134,48 @@ call(Name) ->
         'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
                                 'Subscription-Id-Type' = ?'MSISDN',
                                 'Subscription-Id-Data' = "5511985231234"
-                            }],
-        'Multiple-Services-Indicator' = [1],
-        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-            %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
-                %'Tariff-Change-Usage' = [],
-                %'CC-Time' = [],
-                %'CC-Money' = [],
-                %'CC-Total-Octets' = [],
-                %'CC-Input-Octets' = [],
-                %'CC-Output-Octets' = [],
-                %'CC-Service-Specific-Units' = [],
-                %'AVP' = []
-            %}],
-            'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
-                %'Tariff-Change-Usage' = [],
-                'CC-Time' = [],
-                'CC-Money' = [],
-                'CC-Total-Octets' = [],
-                'CC-Input-Octets' = [],
-                'CC-Output-Octets' = [],
-                'CC-Service-Specific-Units' = [],
-                'AVP' = []
-            }],
-            %'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-                %'Tariff-Change-Usage' = [],
-            %    'CC-Time' = [],
-            %    'CC-Money' = [],
-            %    'CC-Total-Octets' = [],
-            %    'CC-Input-Octets' = [],
-            %    'CC-Output-Octets' = [],
-            %    'CC-Service-Specific-Units' = [],
-            %    'AVP' = []
-            %}],
-            %'Tariff-Change-Usage' = [],
-            'Service-Identifier' = [1],
-            'Rating-Group' = [100]
-            %'G-S-U-Pool-Reference' = [],
-            %'Validity-Time' = [],
-            %'Result-Code' = [],
-            %'Final-Unit-Indication' = [],
+                            }] %,
+        % 'Multiple-Services-Indicator' = [1],
+        % 'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+        %     %'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
+        %         %'Tariff-Change-Usage' = [],
+        %         %'CC-Time' = [],
+        %         %'CC-Money' = [],
+        %         %'CC-Total-Octets' = [],
+        %         %'CC-Input-Octets' = [],
+        %         %'CC-Output-Octets' = [],
+        %         %'CC-Service-Specific-Units' = [],
+        %         %'AVP' = []
+        %     %}],
+        %     'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
+        %         %'Tariff-Change-Usage' = [],
+        %         'CC-Time' = [],
+        %         'CC-Money' = [],
+        %         'CC-Total-Octets' = [],
+        %         'CC-Input-Octets' = [],
+        %         'CC-Output-Octets' = [],
+        %         'CC-Service-Specific-Units' = [],
+        %         'AVP' = []
+        %     }],
+        %     %'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+        %         %'Tariff-Change-Usage' = [],
+        %     %    'CC-Time' = [],
+        %     %    'CC-Money' = [],
+        %     %    'CC-Total-Octets' = [],
+        %     %    'CC-Input-Octets' = [],
+        %     %    'CC-Output-Octets' = [],
+        %     %    'CC-Service-Specific-Units' = [],
+        %     %    'AVP' = []
+        %     %}],
+        %     %'Tariff-Change-Usage' = [],
+        %     'Service-Identifier' = [1],
+        %     'Rating-Group' = [100]
+        %     %'G-S-U-Pool-Reference' = [],
+        %     %'Validity-Time' = [],
+        %     %'Result-Code' = [],
+        %     %'Final-Unit-Indication' = [],
 
-            }]
+        %     }]
         },
         diameter:call(Name, ?APP_ALIAS, CCR, []).
 
