@@ -120,18 +120,30 @@ connect(Address) ->
 tmod(tcp)  -> diameter_tcp;
 tmod(sctp) -> diameter_sctp.
 
-%% call/1
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 charge_event() ->
     charge_event(gprs, {"5511985231234", 1, 100, 1000000}).
 
 charge_event(gprs, {MSISDN, ServiceID, RatingGroup, VolumeBytes}) ->
     SId = diameter:session_id(?L(?SVC_NAME)),
+    RN = 0,
+    % Generate initial CCR without MSCC
+    Ret = generate_CCR(gprs, {initial, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}),
+    case Ret of
+        {ok, _} ->
+            io:format("CCR-INITIAL Success...~n"),
+            call(?SVC_NAME, ?CCR_UPDATE, CCR, VolumeBytes);
+        {error, Err} ->
+            io:format("Error: ~w~n", [Err])
+    end.
+
+
+generate_CCR(gprs, {initial, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}) ->
     CCR = #rfc4006_cc_CCR{
             'Session-Id' = SId,
             'Auth-Application-Id' = 4,
             'Service-Context-Id' = "gprs@diameter.com",
-            %'Termination-Cause' = [] %% Only used on TERMINATE
             'CC-Request-Type' = ?CCR_INITIAL,
             'CC-Request-Number' = 0,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],
@@ -141,15 +153,30 @@ charge_event(gprs, {MSISDN, ServiceID, RatingGroup, VolumeBytes}) ->
                                 }],
             'Multiple-Services-Indicator' = [1]
             },
-    Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []),
-    case Ret of
-        {ok, CCA} ->
-            io:format("CCR-INITIAL Success...~n"),
-            io:format("Calling CCR-U...~n"),
-            call(?SVC_NAME, ?CCR_UPDATE, CCR, VolumeBytes);
-        {error, Err} ->
-            io:format("Error: ~w~n", [Err])
-    end.
+    diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []);
+
+generate_CCR(gprs, {update, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}) ->
+    CCR = #rfc4006_cc_CCR{
+            'Session-Id' = SId,
+            'Auth-Application-Id' = 4,
+            'Service-Context-Id' = "gprs@diameter.com",
+            'CC-Request-Type' = ?CCR_UPDATE,
+            'CC-Request-Number' = 0,
+            'Event-Timestamp' = [calendar:now_to_local_time(now())],
+            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+                                    'Subscription-Id-Type' = ?'MSISDN',
+                                    'Subscription-Id-Data' = MSISDN
+                                }],
+            'Multiple-Services-Indicator' = [1]
+            },
+    diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []).
+
+
+generate_MSCC() ->
+    aaaa.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 call(Name, ?CCR_UPDATE, CCR, VolumeBytes) ->
     io:format("CCR Update...~n"),
