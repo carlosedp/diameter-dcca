@@ -82,8 +82,9 @@ prepare_retransmit(Packet, SvcName, Peer) ->
 %% the former case, return in the latter.
 
 handle_answer(#diameter_packet{msg = Msg}, Request, _SvcName, _Peer)
-  when is_list(Request) ->
-    io:format("answer: ~p~n", [Msg]);
+    when is_list(Request) ->
+        io:format("CCA: ~p~n", [Msg]),
+        {ok, Msg};
 
 handle_answer(#diameter_packet{msg = Msg}, _Request, _SvcName, _Peer) ->
     {ok, Msg}.
@@ -91,8 +92,9 @@ handle_answer(#diameter_packet{msg = Msg}, _Request, _SvcName, _Peer) ->
 %% handle_error/4
 
 handle_error(Reason, Request, _SvcName, _Peer)
-  when is_list(Request) ->
-    io:format("error: ~p~n", [Reason]);
+    when is_list(Request) ->
+        %io:format("error: ~p~n", [Reason])
+        {error, Reason};
 
 handle_error(Reason, _Request, _SvcName, _Peer) ->
     {error, Reason}.

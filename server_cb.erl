@@ -79,7 +79,7 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
                    origin_realm = {OR,_}
     } = Caps,
     #rfc4006_cc_CCR{
-      'Session-Id' = Id,
+      'Session-Id' = SessionId,
       'Auth-Application-Id' = 4,
       'CC-Request-Type' = RT,
       'CC-Request-Number' = RN,
@@ -92,14 +92,14 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     } = Req,
     StartTime = timestamp(EventTimestamp),
     case MSCC of
-      [Data] ->
-        MSCC_Data = process_mscc(RT, [Data], {"APN.com", "7241234567890", MSISDN, "10.0.0.1", Id, StartTime});
+      [_] ->
+        MSCC_Data = process_mscc(RT, MSCC, {"APN.com", "7241234567890", MSISDN, "10.0.0.1", SessionId, StartTime});
       [] ->
         MSCC_Data = {}
     end,
     %io:format("CCR CC-Request-Type: ~p~n", [Req#rfc4006_cc_CCR.'CC-Request-Type']),
     %io:format("EventTimestamp ~p~n", [EventTimestamp]),
-    {reply, answer(ok, RT, RN, Id, OH, OR, MSCC_Data)};
+    {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
 
 %% ... or one that wasn't. 3xxx errors are answered by diameter itself
@@ -125,42 +125,52 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
 
 %% Process MSCC events
 %%
-process_mscc(?CCR_INITIAL, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
-    common_stats:inc(?DIA_STATS_TAB, dia_input_initial_OK),
-    [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-        'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-            'CC-Total-Octets' = USU_TotalOctets
-            %'CC-Input-Octets' = [USU_InputOctets],
-            %'CC-Output-Octets' = [USU_OutputOctets],
-            %'CC-Service-Specific-Units' = [USU_SpecificUnits]
-        }],
-        'Service-Identifier' = [ServiceID],
-        'Rating-Group' = [RatingGroup]
-        %'Final-Unit-Indication' = [],
-    }|_] = MSCC,
+% process_mscc(?CCR_INITIAL, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
+%     common_stats:inc(?DIA_STATS_TAB, dia_input_initial_OK),
+%     [#'rfc4006_cc_Multiple-Services-Credit-Control' {
+%         'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
+%             'CC-Total-Octets' = USU_TotalOctets
+%             %'CC-Input-Octets' = [USU_InputOctets],
+%             %'CC-Output-Octets' = [USU_OutputOctets],
+%             %'CC-Service-Specific-Units' = [USU_SpecificUnits]
+%         }],
+%         'Service-Identifier' = [ServiceID],
+%         'Rating-Group' = [RatingGroup]
+%         %'Final-Unit-Indication' = [],
+%     }|_] = MSCC,
 
-    {ResultCode, GrantedUnits} = generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, checkNullList(USU_TotalOctets), ServiceID, RatingGroup}),
-    {ServiceID, RatingGroup, GrantedUnits, ResultCode};
+%     {ResultCode, GrantedUnits} = generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, checkNullList(USU_TotalOctets), ServiceID, RatingGroup}),
+%     {ServiceID, RatingGroup, GrantedUnits, ResultCode};
 
 process_mscc(?CCR_UPDATE, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
     [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-        'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-            'CC-Total-Octets' = USU_TotalOctets
-            %'CC-Input-Octets' = [USU_InputOctets],
-            %'CC-Output-Octets' = [USU_OutputOctets],
-            %'CC-Service-Specific-Units' = [USU_SpecificUnits]
-        }],
-        %'Tariff-Change-Usage' = [],
+    	'Used-Service-Unit' = USU,
+    	'Requested-Service-Unit' = RSU,
         'Service-Identifier' = [ServiceID],
         'Rating-Group' = [RatingGroup]
-        %'G-S-U-Pool-Reference' = [],
-        %'Validity-Time' = [],
-        %'Result-Code' = [],
-        %'Final-Unit-Indication' = [],
     }|_] = MSCC,
-
-    {ResultCode, GrantedUnits} = generate_intm_req(update, {APN, IMSI, MSISDN, Location, SessionId, StartTime, checkNullList(USU_TotalOctets), ServiceID, RatingGroup}),
+    io:format("USU: ~w~n",[USU]),
+    io:format("RSU: ~w~n",[RSU]),
+    case {RSU, USU} of
+    	% Have RSU. No USU (First interrogation)
+    	{[_], []} ->
+    		io:format("Have RSU. No USU (First interrogation)"),
+    		{ResultCode, GrantedUnits} = generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, 0, ServiceID, RatingGroup});
+    	% Have RSU. Have USU (Next interrogation)
+    	{[_], [_]} ->
+    		io:format("Have RSU. Have USU (Next interrogation)"),
+    		[#'rfc4006_cc_Used-Service-Unit' {
+             'CC-Total-Octets' = UsedUnits
+        	}] = USU,
+			io:format("USU: ~w~n",[UsedUnits]),
+    		{ResultCode, GrantedUnits} = generate_intm_req(update, {APN, IMSI, MSISDN, Location, SessionId, StartTime, UsedUnits, ServiceID, RatingGroup});
+    	% No RSU. Have USU (Last interrogation)
+    	{[], [_]} ->
+    		io:format("No RSU. Have USU (Last interrogation)"),
+    		UsedUnits = checkNullList(USU#'rfc4006_cc_Used-Service-Unit'.'CC-Total-Octets'),
+    		{ResultCode, GrantedUnits} = generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, UsedUnits, ServiceID, RatingGroup})
+    	end,
     {ServiceID, RatingGroup, GrantedUnits, ResultCode};
 
 process_mscc(?CCR_TERMINATE, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
