@@ -53,7 +53,7 @@
 -define(SVC_NAME,     ?MODULE).
 -define(APP_ALIAS,    ?MODULE).
 -define(CALLBACK_MOD, server_cb).
--define(DIAMETER_DICT_CCRA, rfc4006_cc).
+-define(DIAMETER_DICT_CCRA, rfc4006_cc_Gy).
 -define(DIAMETER_IP, "127.0.0.1").
 -define(DIAMETER_PORT, 3868).
 -define(DIAMETER_PROTO, tcp).

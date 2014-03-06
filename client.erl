@@ -39,7 +39,7 @@
 
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
--include_lib("rfc4006_cc.hrl").
+-include_lib("rfc4006_cc_Gy.hrl").
 
 -export([start/1,     %% start a service
          connect/2,   %% add a connecting transport
@@ -63,17 +63,17 @@
 -define(SVC_NAME,     ?MODULE).
 -define(APP_ALIAS,    ?MODULE).
 -define(CALLBACK_MOD, client_cb).
--define(DIAMETER_DICT_CCRA, rfc4006_cc).
+-define(DIAMETER_DICT_CCRA, rfc4006_cc_Gy).
 -define(DIAMETER_IP, "127.0.0.1").
 -define(DIAMETER_PORT, 3868).
 -define(DIAMETER_PROTO, tcp).
 
--define(CCR_INITIAL, ?'RFC4006_CC_CC-REQUEST-TYPE_INITIAL_REQUEST').
--define(CCR_UPDATE, ?'RFC4006_CC_CC-REQUEST-TYPE_UPDATE_REQUEST').
--define(CCR_TERMINATE, ?'RFC4006_CC_CC-REQUEST-TYPE_TERMINATION_REQUEST').
+-define(CCR_INITIAL, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_INITIAL_REQUEST').
+-define(CCR_UPDATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_UPDATE_REQUEST').
+-define(CCR_TERMINATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_TERMINATION_REQUEST').
 
--define(MSISDN, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_E164').
--define(IMSI, ?'RFC4006_CC_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
+-define(MSISDN, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_E164').
+-define(IMSI, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
 
 -define(L, atom_to_list).
 
@@ -122,48 +122,34 @@ tmod(sctp) -> diameter_sctp.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 charge_event() ->
     charge_event(gprs, {"5511985231234", 1, 100, 1000000}).
 
 charge_event(gprs, {MSISDN, ServiceID, RatingGroup, VolumeBytes}) ->
     SId = diameter:session_id(?L(?SVC_NAME)),
-    RN = 0,
+    ReqN = 0,
     % Generate initial CCR without MSCC
-    Ret = generate_CCR(gprs, {initial, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}),
+    Ret = create_session(gprs, {initial, MSISDN, SId, ReqN}),
     case Ret of
         {ok, _} ->
             io:format("CCR-INITIAL Success...~n"),
-            call(?SVC_NAME, ?CCR_UPDATE, CCR, VolumeBytes);
+            rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, 0, VolumeBytes}});
         {error, Err} ->
             io:format("Error: ~w~n", [Err])
-    end.
+    end,
+    io:format("Event charged successfully.~n").
 
-
-generate_CCR(gprs, {initial, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}) ->
-    CCR = #rfc4006_cc_CCR{
+%% Create the PDP context. First CCR does not contain MSCC
+create_session(gprs, {initial, MSISDN, SId, ReqN}) ->
+    CCR = #rfc4006_cc_Gy_CCR{
             'Session-Id' = SId,
             'Auth-Application-Id' = 4,
             'Service-Context-Id' = "gprs@diameter.com",
             'CC-Request-Type' = ?CCR_INITIAL,
-            'CC-Request-Number' = 0,
+            'CC-Request-Number' = ReqN,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],
-            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
-                                    'Subscription-Id-Type' = ?'MSISDN',
-                                    'Subscription-Id-Data' = MSISDN
-                                }],
-            'Multiple-Services-Indicator' = [1]
-            },
-    diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []);
-
-generate_CCR(gprs, {update, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeBytes}}) ->
-    CCR = #rfc4006_cc_CCR{
-            'Session-Id' = SId,
-            'Auth-Application-Id' = 4,
-            'Service-Context-Id' = "gprs@diameter.com",
-            'CC-Request-Type' = ?CCR_UPDATE,
-            'CC-Request-Number' = 0,
-            'Event-Timestamp' = [calendar:now_to_local_time(now())],
-            'Subscription-Id' = [#'rfc4006_cc_Subscription-Id' {
+            'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
                                     'Subscription-Id-Type' = ?'MSISDN',
                                     'Subscription-Id-Data' = MSISDN
                                 }],
@@ -171,95 +157,123 @@ generate_CCR(gprs, {update, MSISDN, SId, RN, {ServiceID, RatingGroup, VolumeByte
             },
     diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []).
 
+%% Rate service
+rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
+	ReqN2 = ReqN+1,
+    CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
+    CCR2 = CCR1#rfc4006_cc_Gy_CCR{
+            'Session-Id' = SId,
+            'Auth-Application-Id' = 4,
+            'Service-Context-Id' = "gprs@diameter.com",
+            'CC-Request-Type' = ?CCR_UPDATE,
+            'CC-Request-Number' = ReqN2,
+            'Event-Timestamp' = [calendar:now_to_local_time(now())],
+            'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
+                                    'Subscription-Id-Type' = ?'MSISDN',
+                                    'Subscription-Id-Data' = MSISDN
+                                }],
+            'Multiple-Services-Indicator' = [1]
+            },
+    Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
+	case Ret of
+		{ok, CCA} ->
+    		io:format("CCR-UPDATE Success...~n"),
+			%% Extract GSU from CCA
+			#rfc4006_cc_Gy_CCA{
+			      'Multiple-Services-Credit-Control' = MSCC
+			    } = CCA,
+			[#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+			    	'Granted-Service-Unit' = GSU
+			    }|_] = MSCC,
+			[#'rfc4006_cc_Gy_Granted-Service-Unit' {
+			             'CC-Total-Octets' = [UsedUnits]
+			}] = GSU,
+			%% Subtract GSU from total
+			NewRemainingBytes = RemainingBytes-UsedUnits,
+			if
+				(NewRemainingBytes > 0) ->
+					rate_service(gprs, {update, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, UsedUnits, NewRemainingBytes}});
+				(NewRemainingBytes =< 0) ->
+					io:format("Last request: ~w | ~w | ~w ~n", [UsedUnits, RemainingBytes, NewRemainingBytes]),
+					rate_service(gprs, {terminate, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, RemainingBytes, 0}})
+			end;
+		{error, Err} ->
+    		io:format("Error: ~w~n", [Err])
+    end,
+    ok;
 
-generate_MSCC() ->
-    aaaa.
+rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
+	ReqN2 = ReqN+1,
+    CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
+    CCR2 = CCR1#rfc4006_cc_Gy_CCR{
+            'Session-Id' = SId,
+            'Auth-Application-Id' = 4,
+            'Service-Context-Id' = "gprs@diameter.com",
+            'CC-Request-Type' = ?CCR_TERMINATE,
+            'CC-Request-Number' = ReqN2,
+            'Event-Timestamp' = [calendar:now_to_local_time(now())],
+            'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
+                                    'Subscription-Id-Type' = ?'MSISDN',
+                                    'Subscription-Id-Data' = MSISDN
+                                }],
+            'Multiple-Services-Indicator' = [1]
+            },
+    Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
+	case Ret of
+		{ok, _} ->
+    		io:format("CCR-TERMINATE Success...~n");
+		{error, Err} ->
+    		io:format("Error: ~w~n", [Err])
+    end,
+    ok.
+
+
+generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes) ->
+	if
+		((ConsumedBytes == 0 ) and (RemainingBytes > 0)) ->
+			%% First request. Must send RSU and no USU.
+			MSCC = #rfc4006_cc_Gy_CCR {
+	        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+	            'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
+	                 'CC-Total-Octets' = []
+	             }],
+	             'Service-Identifier' = [ServiceID],
+	             'Rating-Group' = [RatingGroup]
+	        }]
+	        };
+		((ConsumedBytes /= 0 ) and (RemainingBytes > 0)) ->
+			%% Update request. Must send RSU and USU.
+			MSCC = #rfc4006_cc_Gy_CCR {
+	        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+	            'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
+	                 'CC-Total-Octets' = []
+	             }],
+	            'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
+	               'CC-Total-Octets' = [ConsumedBytes]
+	            }],
+	             'Service-Identifier' = [ServiceID],
+	             'Rating-Group' = [RatingGroup],
+	             'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_QUOTA_EXAUSTED']
+	        }]
+	        };
+		((ConsumedBytes /= 0 ) and (RemainingBytes =< 0) ) ->
+			%% Last update request. Must send USU to report last used bytes. No RSU.
+			MSCC = #rfc4006_cc_Gy_CCR {
+	        	'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+	            	'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
+	               		'CC-Total-Octets' = [ConsumedBytes]
+	            	}],
+	             	'Service-Identifier' = [ServiceID],
+	             	'Rating-Group' = [RatingGroup],
+	             	'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_FINAL']
+	        	}]
+	        };
+		true ->
+			MSCC = err
+	end,
+    MSCC.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-call(Name, ?CCR_UPDATE, CCR, VolumeBytes) ->
-    io:format("CCR Update...~n"),
-    CCR_UPDATE = CCR#rfc4006_cc_CCR {
-        'CC-Request-Type' = ?CCR_UPDATE,
-        'CC-Request-Number' = CCR#rfc4006_cc_CCR.'CC-Request-Number'+1,
-        'Event-Timestamp' = [calendar:now_to_local_time(now())],
-        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-            'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
-                 'CC-Total-Octets' = []
-             }],
-            % 'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-            %    % 'CC-Total-Octets' = [],
-            %    % 'CC-Input-Octets' = [],
-            %    'CC-Output-Octets' = [VolumeBytes]
-            %    % 'CC-Service-Specific-Units' = [],
-            % }],
-             'Service-Identifier' = [1],
-             'Rating-Group' = [100]
-        }]
-        },
-        Ret = diameter:call(Name, ?APP_ALIAS, CCR_UPDATE, []),
-        case Ret of
-            {ok, CCA} ->
-                io:format("CCR Update Success...~w~n", [CCA]),
-
-                #rfc4006_cc_CCA {
-                'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-                        'Granted-Service-Unit' = [#'rfc4006_cc_Granted-Service-Unit' {
-                            'CC-Total-Octets' = [GSU]
-                        }],
-                    'Service-Identifier' = [ServiceID],
-                    'Rating-Group' = [RatingGroup]
-                    }]
-                } = CCA,
-                io:format("GSU...~w~n", [GSU]),
-
-                if
-                    VolumeBytes < GSU ->
-                        VolumeLeft = VolumeBytes - GSU,
-                        call(?SVC_NAME, ?CCR_UPDATE, CCR, VolumeLeft);
-                    true ->
-                        VolumeLeft = VolumeBytes - GSU,
-                        call(?SVC_NAME, ?CCR_TERMINATE, CCR, VolumeLeft)
-                end;
-            {error, Err} ->
-                io:format("CCR Update Error: ~w~n", [Err])
-        end;
-
-
-call(Name, ?CCR_TERMINATE, CCR, VolumeBytes) ->
-    io:format("CCR Terminate...~n"),
-    CCR_TERMINATE = CCR#rfc4006_cc_CCR {
-        'CC-Request-Type' = ?CCR_TERMINATE,
-        'CC-Request-Number' = CCR#rfc4006_cc_CCR.'CC-Request-Number'+1,
-        'Event-Timestamp' = [calendar:now_to_local_time(now())],
-        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Multiple-Services-Credit-Control' {
-             'Requested-Service-Unit' = [#'rfc4006_cc_Requested-Service-Unit' {
-                 'CC-Total-Octets' = []
-             }],
-            'Used-Service-Unit' = [#'rfc4006_cc_Used-Service-Unit' {
-               % 'CC-Total-Octets' = [],
-               % 'CC-Input-Octets' = [],
-               'CC-Output-Octets' = [VolumeBytes]
-               % 'CC-Service-Specific-Units' = [],
-            }],
-             'Service-Identifier' = [1],
-             'Rating-Group' = [100]
-        }]
-        },
-        Ret = diameter:call(Name, ?APP_ALIAS, CCR_TERMINATE, []),
-        case Ret of
-            {ok, CCA} ->
-                io:format("CCR Terminate Success...~w~n", [CCA]);
-            {error, Err} ->
-                io:format("CCR Terminate Error: ~w~n", [Err])
-        end.
-
-% call(RT) ->
-%     call(?SVC_NAME, RT).
-
-% call() ->
-%     call(?SVC_NAME, ?CCR_INITIAL).
 
 %% cast/1
 

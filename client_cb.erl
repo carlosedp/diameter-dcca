@@ -21,7 +21,7 @@
 
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
--include_lib("rfc4006_cc.hrl").
+-include_lib("rfc4006_cc_Gy.hrl").
 
 %% diameter callbacks
 -export([peer_up/3,
@@ -65,7 +65,7 @@ prepare_request(#diameter_packet{msg = Rec}, _, {_, Caps}) ->
                    origin_realm = {OR, DR}
     } = Caps,
 
-    {send, Rec#rfc4006_cc_CCR{'Origin-Host' = OH,
+    {send, Rec#rfc4006_cc_Gy_CCR{'Origin-Host' = OH,
                               'Origin-Realm' = OR,
                               'Destination-Host' = [DH],
                               'Destination-Realm' = DR}}.
