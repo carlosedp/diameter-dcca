@@ -40,10 +40,10 @@
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
 -include_lib("rfc4006_cc_Gy.hrl").
+-include_lib("diameter_settings.hrl").
 
 -export([start/1,     %% start a service
          connect/2,   %% add a connecting transport
-         % call/1,      %% send using the record encoding
          cast/1,      %% send using the list encoding and detached
          stop/1]).    %% stop a service
 %% A real application would typically choose an encoding and whether
@@ -55,36 +55,25 @@
 -export([start/0,
          connect/1,
          stop/0,
-         % call/0,
          cast/0,
          charge_event/0,
          charge_event/2]).
 
--define(SVC_NAME,     ?MODULE).
--define(APP_ALIAS,    ?MODULE).
+-define(SVC_NAME, ?MODULE).
+-define(APP_ALIAS, ?MODULE).
 -define(CALLBACK_MOD, client_cb).
 -define(DIAMETER_DICT_CCRA, rfc4006_cc_Gy).
--define(DIAMETER_IP, "127.0.0.1").
--define(DIAMETER_PORT, 3868).
--define(DIAMETER_PROTO, tcp).
-
--define(CCR_INITIAL, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_INITIAL_REQUEST').
--define(CCR_UPDATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_UPDATE_REQUEST').
--define(CCR_TERMINATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_TERMINATION_REQUEST').
-
--define(MSISDN, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_E164').
--define(IMSI, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
 
 -define(L, atom_to_list).
 
 %% The service configuration. As in the server example, a client
 %% supporting multiple Diameter applications may or may not want to
 %% configure a common callback module on all applications.
--define(SERVICE(Name), [{'Origin-Host', ?L(Name) ++ ".example.com"},
-                        {'Origin-Realm', "example.com"},
-                        {'Vendor-Id', 0},
+-define(SERVICE(Name), [{'Origin-Host', ?ORIGIN_HOST},
+                        {'Origin-Realm', ?ORIGIN_REALM},
+                        {'Vendor-Id', ?VENDOR_ID},
                         {'Product-Name', "Client"},
-                        {'Auth-Application-Id', [4]},
+                        {'Auth-Application-Id', [?DCCA_APPLICATION_ID]},
                         {application, [{alias, ?APP_ALIAS},
                                        {dictionary, ?DIAMETER_DICT_CCRA},
                                        {module, ?CALLBACK_MOD}]}]).
@@ -111,7 +100,7 @@ connect(Name, {address, Protocol, IPAddr, Port}) ->
                         %{ip, {IP}},
                         {rport, Port}]}
                     ],
-    diameter:add_transport(Name, {connect, [{reconnect_timer, 5000} | TransportOpts]}).
+    diameter:add_transport(Name, {connect, [{reconnect_timer, 1000} | TransportOpts]}).
 
 
 connect(Address) ->
@@ -163,8 +152,8 @@ rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consumed
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
             'Session-Id' = SId,
-            'Auth-Application-Id' = 4,
-            'Service-Context-Id' = "gprs@diameter.com",
+            'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
+            'Service-Context-Id' = ?CONTEXT_ID,
             'CC-Request-Type' = ?CCR_UPDATE,
             'CC-Request-Number' = ReqN2,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],
@@ -207,8 +196,8 @@ rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consu
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
             'Session-Id' = SId,
-            'Auth-Application-Id' = 4,
-            'Service-Context-Id' = "gprs@diameter.com",
+            'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
+            'Service-Context-Id' = ?CONTEXT_ID,
             'CC-Request-Type' = ?CCR_TERMINATE,
             'CC-Request-Number' = ReqN2,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],

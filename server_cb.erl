@@ -26,15 +26,9 @@
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
 -include_lib("rfc4006_cc_Gy.hrl").
-
--define(CCR_INITIAL, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_INITIAL_REQUEST').
--define(CCR_UPDATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_UPDATE_REQUEST').
--define(CCR_TERMINATE, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_TERMINATION_REQUEST').
+-include_lib("diameter_settings.hrl").
 
 -define(DIA_STATS_TAB, dcca_stats).
-
--define(MSISDN, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_E164').
--define(IMSI, ?'RFC4006_CC_GY_SUBSCRIPTION-ID-TYPE_END_USER_IMSI').
 
 %% diameter callbacks
 -export([peer_up/3,
@@ -80,7 +74,7 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     } = Caps,
     #rfc4006_cc_Gy_CCR{
       'Session-Id' = SessionId,
-      'Auth-Application-Id' = 4,
+      'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
       'CC-Request-Type' = RT,
       'CC-Request-Number' = RN,
       %'Service-Context-Id' = ServiceContextId,
@@ -93,6 +87,7 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     StartTime = timestamp(EventTimestamp),
     case MSCC of
       [_] ->
+      	%% TODO -> Receive fields from request. Validate all fields.
         MSCC_Data = process_mscc(RT, MSCC, {"APN.com", "7241234567890", MSISDN, "10.0.0.1", SessionId, StartTime});
       [] ->
         MSCC_Data = {}
@@ -122,25 +117,6 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
 handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
     io:format("Unsupported message"),
     discard.
-
-%% Process MSCC events
-%%
-% process_mscc(?CCR_INITIAL, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
-%     common_stats:inc(?DIA_STATS_TAB, dia_input_initial_OK),
-%     [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
-%         'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
-%             'CC-Total-Octets' = USU_TotalOctets
-%             %'CC-Input-Octets' = [USU_InputOctets],
-%             %'CC-Output-Octets' = [USU_OutputOctets],
-%             %'CC-Service-Specific-Units' = [USU_SpecificUnits]
-%         }],
-%         'Service-Identifier' = [ServiceID],
-%         'Rating-Group' = [RatingGroup]
-%         %'Final-Unit-Indication' = [],
-%     }|_] = MSCC,
-
-%     {ResultCode, GrantedUnits} = generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, checkNullList(USU_TotalOctets), ServiceID, RatingGroup}),
-%     {ServiceID, RatingGroup, GrantedUnits, ResultCode};
 
 process_mscc(?CCR_UPDATE, MSCC, {APN, IMSI, MSISDN, Location, SessionId, StartTime}) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
@@ -202,23 +178,23 @@ process_mscc(?CCR_TERMINATE, MSCC, {APN, IMSI, MSISDN, Location, SessionId, Star
 generate_intm_req(initial, {APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup}) ->
     io:format("[{7,\"OtherParty\",[{5,\"APN\",\"~s\"}]},{3,\"MessageType\",2},{7,\"ServedParty\",[{5,\"IMSI\",\"~s\"},{5,\"MSISDN\",\"~s\"},{5,\"Location\",\"~s\"}]},{5,\"Version\",\"5.00.0\"},{5,\"SessionId\",\"~s\"},{7,\"Resources\",[{7,\"R_1\",[{5,\"StartTime\",\"~s\"},{1,\"ConsumedResources\",~B},{5,\"SubServiceType\",\"~2..0B/~3..0B\"},{3,\"ReportingReason\",50},{1,\"RequestedResources\",-1},{5,\"ServiceType\",\"GPRS:0:~2..0B:~3..0B\"},{3,\"QuotaType\",0},{3,\"Id\",~B~3..0B}]}]}]~n",[APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup, ServiceID, RatingGroup, ServiceID, RatingGroup]),
 
-  SimulatedGrantedQuota =  300000,
-  ResultCode = 1,
-  {ResultCode, SimulatedGrantedQuota};
+	SimulatedGrantedQuota =  300000,
+	ResultCode = 1,
+	{ResultCode, SimulatedGrantedQuota};
 
 generate_intm_req(update, {APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup}) ->
     io:format("[{7,\"OtherParty\",[{5,\"APN\",\"~s\"}]},{3,\"MessageType\",2},{7,\"ServedParty\",[{5,\"IMSI\",\"~s\"},{5,\"MSISDN\",\"~s\"},{5,\"Location\",\"~s\"}]},{5,\"Version\",\"5.00.0\"},{5,\"SessionId\",\"~s\"},{7,\"Resources\",[{7,\"R_1\",[{5,\"StartTime\",\"~s\"},{1,\"ConsumedResources\",~B},{5,\"SubServiceType\",\"~2..0B/~3..0B\"},{3,\"ReportingReason\",3},{1,\"RequestedResources\",-1},{5,\"ServiceType\",\"GPRS:0:~2..0B:~3..0B\"},{3,\"QuotaType\",3},{3,\"Id\",~B~3..0B}]}]}]~n",[APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup, ServiceID, RatingGroup, ServiceID, RatingGroup]),
 
-  SimulatedGrantedQuota =  300000,
-  ResultCode = 1,
-  {ResultCode, SimulatedGrantedQuota};
+	SimulatedGrantedQuota =  300000,
+	ResultCode = 1,
+	{ResultCode, SimulatedGrantedQuota};
 
 generate_intm_req(terminate, {APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup}) ->
 	io:format("[{7,\"OtherParty\",[{5,\"APN\",\"~s\"}]},{3,\"MessageType\",2},{7,\"ServedParty\",[{5,\"IMSI\",\"~s\"},{5,\"MSISDN\",\"~s\"},{5,\"Location\",\"~s\"}]},{5,\"Version\",\"5.00.0\"},{5,\"SessionId\",\"~s\"},{7,\"Resources\",[{7,\"R_1\",[{5,\"StartTime\",\"~s\"},{1,\"ConsumedResources\",~B},{5,\"SubServiceType\",\"~2..0B/~3..0B\"},{3,\"ReportingReason\",2},{1,\"RequestedResources\",-1},{5,\"ServiceType\",\"GPRS:0:~2..0B:~3..0B\"},{3,\"QuotaType\",3},{3,\"Id\",~B~3..0B}]}]}]~n",[APN, IMSI, MSISDN, Location, SessionId, StartTime, ConsumedResources, ServiceID, RatingGroup, ServiceID, RatingGroup, ServiceID, RatingGroup]),
 
-  SimulatedGrantedQuota =  300000,
-    ResultCode = 1,
-  {ResultCode, SimulatedGrantedQuota}.
+	SimulatedGrantedQuota =  300000,
+	ResultCode = 1,
+	{ResultCode, SimulatedGrantedQuota}.
 
 %% ---------------------------------------------------------------------------
 
@@ -234,7 +210,7 @@ answer(ok, RT, RN, Id, OH, OR, {ServiceID, RatingGroup, GrantedUnits, ResultCode
     'Origin-Host' = OH,
     'Origin-Realm' = OR,
     'Session-Id' = Id,
-    'Auth-Application-Id' = 4,
+    'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
     'CC-Request-Type' = RT,
     'CC-Request-Number' = RN,
     %'Termination-Cause' = [] %% Only used on TERMINATE
@@ -261,7 +237,7 @@ answer(ok, RT, RN, Id, OH, OR, {}) ->
     'Origin-Host' = OH,
     'Origin-Realm' = OR,
     'Session-Id' = Id,
-    'Auth-Application-Id' = 4,
+    'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
     'CC-Request-Type' = RT,
     'CC-Request-Number' = RN
   };
@@ -273,7 +249,7 @@ answer(err, RT, RN, Id, OH, OR, {}) ->
       'Origin-Host' = OH,
       'Origin-Realm' = OR,
       'Session-Id' = Id,
-      'Auth-Application-Id' = 4,
+      'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
       'CC-Request-Type' = RT,
       'CC-Request-Number' = RN
     }.

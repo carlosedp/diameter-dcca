@@ -36,6 +36,7 @@
 
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
+-include_lib("diameter_settings.hrl").
 
 -export([start/1,    %% start a service
          listen/2,   %% add a listening transport
@@ -54,18 +55,15 @@
 -define(APP_ALIAS,    ?MODULE).
 -define(CALLBACK_MOD, server_cb).
 -define(DIAMETER_DICT_CCRA, rfc4006_cc_Gy).
--define(DIAMETER_IP, "127.0.0.1").
--define(DIAMETER_PORT, 3868).
--define(DIAMETER_PROTO, tcp).
 
 %% The service configuration. In a server supporting multiple Diameter
 %% applications each application may have its own, although they could all
 %% be configured with a common callback module.
--define(SERVICE(Name), [{'Origin-Host', atom_to_list(Name) ++ ".example.com"},
-                        {'Origin-Realm', "example.com"},
-                        {'Vendor-Id', 193},
+-define(SERVICE(Name), [{'Origin-Host', ?ORIGIN_HOST},
+                        {'Origin-Realm', ?ORIGIN_REALM},
+                        {'Vendor-Id', ?VENDOR_ID},
                         {'Product-Name', "Server"},
-                        {'Auth-Application-Id', [4]},
+                        {'Auth-Application-Id', [?DCCA_APPLICATION_ID]},
                         {application,
                             [{alias, ?APP_ALIAS},
                             {dictionary, ?DIAMETER_DICT_CCRA},
