@@ -134,7 +134,7 @@
 	 '3GPP-Selection-Mode', '3GPP-Charging-Characteristics',
 	 '3GPP-SGSN-PLMN-Id', '3GPP-MS-Time-Zone',
 	 '3GPP-CAMEL-Charging-Info', '3GPP-User-Location-Info',
-	 '3GPP-RAT-Type'}).
+	 '3GPP-RAT-Type', 'Filter-Id'}).
 
 
 %%% -------------------------------------------------------

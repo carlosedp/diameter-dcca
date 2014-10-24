@@ -298,6 +298,7 @@
            { 3GPP-CAMEL-Charging-Info }
            { 3GPP-User-Location-Info }
            { 3GPP-RAT-Type }
+           { Filter-Id }
 
 ;; ===========================================================================
 

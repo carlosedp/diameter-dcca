@@ -148,7 +148,7 @@
 	 '3GPP-Selection-Mode', '3GPP-Charging-Characteristics',
 	 '3GPP-SGSN-PLMN-Id', '3GPP-MS-Time-Zone',
 	 '3GPP-CAMEL-Charging-Info', '3GPP-User-Location-Info',
-	 '3GPP-RAT-Type'}).
+	 '3GPP-RAT-Type', 'Filter-Id'}).
 
 -record('rfc4006_cc_Gy_Proxy-Info',
 	{'Proxy-Host', 'Proxy-State', 'AVP' = []}).
@@ -681,6 +681,7 @@ avp_arity('PS-Information',
 	  '3GPP-User-Location-Info') ->
     1;
 avp_arity('PS-Information', '3GPP-RAT-Type') -> 1;
+avp_arity('PS-Information', 'Filter-Id') -> 1;
 avp_arity('Proxy-Info', 'Proxy-Host') -> 1;
 avp_arity('Proxy-Info', 'Proxy-State') -> 1;
 avp_arity('Proxy-Info', 'AVP') -> {0, '*'};
@@ -1730,7 +1731,8 @@ dict() ->
 	 {"3GPP-Charging-Characteristics"},
 	 {"3GPP-SGSN-PLMN-Id"}, {"3GPP-MS-Time-Zone"},
 	 {"3GPP-CAMEL-Charging-Info"},
-	 {"3GPP-User-Location-Info"}, {"3GPP-RAT-Type"}]}]},
+	 {"3GPP-User-Location-Info"}, {"3GPP-RAT-Type"},
+	 {"Filter-Id"}]}]},
      {id, 4},
      {import_avps,
       [{diameter_gen_base_rfc6733,
