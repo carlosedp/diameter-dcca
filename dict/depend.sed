@@ -1,7 +1,7 @@
 #
 # %CopyrightBegin%
 #
-# Copyright Ericsson AB 2010-2012. All Rights Reserved.
+# Copyright Ericsson AB 2013. All Rights Reserved.
 #
 # The contents of this file are subject to the Erlang Public License,
 # Version 1.1, (the "License"); you may not use this file except in
@@ -17,28 +17,27 @@
 # %CopyrightEnd%
 #
 
-APPS  = client server
-SUPPORT = common_stats ocs_intm
-CALLBACKS = $(APPS:%=%_cb)
+#
+# Extract dependencies from .dia files. First line of input is the
+# dictionary's filename, the rest is its contents.
+#
 
-MODULES   = $(APPS) $(APPS:%=%_cb) $(SUPPORT)
+1{
+  s@\.[^.]*$@@
+  h
+  d
+}
 
-BEAM = $(MODULES:%=%.beam)
+# Only interested in @inherits.
+/^@inherits  */!d
 
-DICTS = rfc4006_cc_Gy
+s///
+s/ .*//
 
-all: $(BEAM)
+# Ignore the common application.
+/^common$/d
 
-%.beam: %.erl dicts
-	erlc -Wall +debug_info $<
-
-dicts:
-	$(MAKE) -C dict
-	cp dict/$(DICTS).hrl dict/$(DICTS).beam dict/$(DICTS).erl .
-
-clean:
-	rm -f $(BEAM)
-	rm -f $(DICTS).*
-	$(MAKE) -C dict clean
-
-.PHONY: all clean
+# Retrieve the dictionary name from the hold space and output
+# a dependency.
+G
+s@^\(.*\)\n\(.*\)@\2.erl: \1.beam@

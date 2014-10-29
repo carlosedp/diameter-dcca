@@ -3,8 +3,8 @@
 -define (DIAMETER_PORT, 3868).
 -define (DIAMETER_PROTO, tcp).
 -define (VENDOR_ID, 0).
--define (ORIGIN_HOST, "localhost.example.com").
--define (ORIGIN_REALM, "example.com").
+-define (ORIGIN_HOST, "example.com").
+-define (ORIGIN_REALM, "realm.example.com").
 -define (CONTEXT_ID, "gprs@diameter.com").
 
 -define (CCR_INITIAL, ?'RFC4006_CC_GY_CC-REQUEST-TYPE_INITIAL_REQUEST').

@@ -21,8 +21,7 @@
 # Build example dictionaries. Assumes erlc and diameterc are on PATH.
 #
 
-DICTS = rfc4004_mip \
-        rfc4005_nas \
+DICTS = rfc4005_nas \
         rfc4006_cc \
         rfc4006_cc_Gy
 
@@ -47,7 +46,7 @@ clean:
 
 -include depend.mk
 
-depend.mk: depend.sed $(FILES) GNUmakefile
+depend.mk: depend.sed $(FILES) Makefile
 	(for f in $(FILES); do \
 	     (echo $$f; cat $$f) | sed -f depend.sed; \
 	 done) \

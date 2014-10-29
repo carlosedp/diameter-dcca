@@ -198,7 +198,7 @@
            [ Validity-Time ]
            [ Result-Code ]
            [ Final-Unit-Indication ]
-           [ Reporting-Reason ]
+         * [ Reporting-Reason ]
          * [ AVP ]
 
    Granted-Service-Unit ::= < AVP Header: 431 >
@@ -220,7 +220,7 @@
            [ CC-Input-Octets ]
            [ CC-Output-Octets ]
            [ CC-Service-Specific-Units ]
-           [ Reporting-Reason ]
+         * [ Reporting-Reason ]
          * [ AVP ]
 
    Used-Service-Unit ::= < AVP Header: 446 >
