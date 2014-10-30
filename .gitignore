@@ -1,0 +1,4 @@
+**/*.beam
+dict/depend.mk
+dict/*.erl
+dict/*.hrl

@@ -37,8 +37,7 @@ dicts:
 	cp dict/$(DICTS).hrl dict/$(DICTS).beam dict/$(DICTS).erl .
 
 clean:
-	rm -f $(BEAM)
-	rm -f $(DICTS).*
+	rm -f $(BEAM) $(DICTS).beam
 	$(MAKE) -C dict clean
 
 .PHONY: all clean
