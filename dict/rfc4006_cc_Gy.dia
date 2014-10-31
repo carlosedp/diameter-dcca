@@ -25,6 +25,7 @@
 
 @inherits common
 @inherits rfc4005_nas  Filter-Id
+@vendor 10415 3GPP
 
 ;; ===========================================================================
 
@@ -81,28 +82,27 @@
    User-Equipment-Info-Value         460    OctetString   -
    Value-Digits                      447    Integer64     M
    Validity-Time                     448    Unsigned32    M
-   Reporting-Reason                  872    Enumerated    M
-   Service-Information               873    Grouped       M
-   PS-Information                    874    Grouped       M
-   3GPP-Charging-Id                    2    Unsigned32    M
-   3GPP-PDP-Type                       3    Unsigned32    M
-   PDP-Address                      1227    Address       M
-   3GPP-GPRS-Neg-QoS-Profile           5    UTF8String    M
-   SGSN-Address                     1228    Address       M
-   GGSN-Address                      847    Address       M
-   CG-Address                        846    Address       M
-   3GPP-IMSI-MCC-MNC                   8    UTF8String    M
-   3GPP-GGSN-MCC-MNC                   9    UTF8String    M
-   3GPP-NSAPI                         10    UTF8String    M
-   Called-Station-Id                  30    UTF8String    M
-;;   3GPP-Session-Stop-Indicator        11    OctetString   M
-   3GPP-Selection-Mode                12    UTF8String    M
-   3GPP-Charging-Characteristics      13    OctetString   M
-   3GPP-SGSN-PLMN-Id                  18    OctetString   M
-   3GPP-MS-Time-Zone                  23    OctetString   M
-   3GPP-CAMEL-Charging-Info           24    UTF8String    M
-   3GPP-User-Location-Info            22    UTF8String    M
-   3GPP-RAT-Type                      21    OctetString   M
+   Reporting-Reason                  872    Enumerated    MV
+   Service-Information               873    Grouped       MV
+   PS-Information                    874    Grouped       MV
+   3GPP-Charging-Id                    2    Unsigned32    V
+   3GPP-PDP-Type                       3    Unsigned32    V
+   PDP-Address                      1227    Address       MV
+   3GPP-GPRS-Neg-QoS-Profile           5    UTF8String    V
+   SGSN-Address                     1228    Address       MV
+   GGSN-Address                      847    Address       MV
+   CG-Address                        846    Address       MV
+   3GPP-IMSI-MCC-MNC                   8    UTF8String    V
+   3GPP-GGSN-MCC-MNC                   9    UTF8String    V
+   3GPP-NSAPI                         10    UTF8String    V
+   Called-Station-Id                  30    UTF8String    V
+   3GPP-Selection-Mode                12    UTF8String    V
+   3GPP-Charging-Characteristics      13    OctetString   V
+   3GPP-SGSN-PLMN-Id                  18    OctetString   V
+   3GPP-MS-Time-Zone                  23    OctetString   V
+   3GPP-CAMEL-Charging-Info           24    UTF8String    V
+   3GPP-User-Location-Info            22    UTF8String    V
+   3GPP-RAT-Type                      21    OctetString   V
 
 ;; ===========================================================================
 
@@ -220,7 +220,7 @@
            [ CC-Input-Octets ]
            [ CC-Output-Octets ]
            [ CC-Service-Specific-Units ]
-         * [ Reporting-Reason ]
+           [ Reporting-Reason ]
          * [ AVP ]
 
    Used-Service-Unit ::= < AVP Header: 446 >
@@ -275,22 +275,21 @@
 
    Service-Information ::= < AVP Header: 873 >
 
-           [ PS-Information ]
+           { PS-Information }
 
    PS-Information ::= < AVP Header: 874 >
 
            { 3GPP-Charging-Id }
            { 3GPP-PDP-Type }
-           { PDP-Address }
+         * { PDP-Address }
            { 3GPP-GPRS-Neg-QoS-Profile }
-           { SGSN-Address }
-           { GGSN-Address }
+         * { SGSN-Address }
+         * { GGSN-Address }
            { CG-Address }
            { 3GPP-IMSI-MCC-MNC }
            { 3GPP-GGSN-MCC-MNC }
            { 3GPP-NSAPI }
            { Called-Station-Id }
-;;           { 3GPP-Session-Stop-Indicator }
            { 3GPP-Selection-Mode }
            { 3GPP-Charging-Characteristics }
            { 3GPP-SGSN-PLMN-Id }
