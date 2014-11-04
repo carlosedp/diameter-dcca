@@ -26,7 +26,8 @@
 %% Convenience functions using the default service name, ?SVC_NAME.
 -export([start/0,
          listen/1,
-         stop/0]).
+         stop/0,
+         restart/0]).
 
 -define(DIA_STATS_TAB, dcca_stats).
 -define(DIA_STATS_COUNTERS, [event_OK, event_ERR]).
@@ -85,6 +86,10 @@ stop(Name) ->
 
 stop() ->
     stop(?SVC_NAME).
+
+restart() ->
+    stop(),
+    start().
 
 tmod(tcp)  -> diameter_tcp;
 tmod(sctp) -> diameter_sctp.

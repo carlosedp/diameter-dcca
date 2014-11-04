@@ -38,6 +38,7 @@
 		 'rfc4006_cc_Gy_User-Equipment-Info',
 		 'rfc4006_cc_Gy_Service-Information',
 		 'rfc4006_cc_Gy_PS-Information',
+		 'rfc4006_cc_Gy_Remaining-Balance',
 		 'rfc4006_cc_Gy_Proxy-Info', 'rfc4006_cc_Gy_Failed-AVP',
 		 'rfc4006_cc_Gy_Experimental-Result',
 		 'rfc4006_cc_Gy_Vendor-Specific-Application-Id']).
@@ -47,36 +48,30 @@
 	 'Destination-Realm', 'Auth-Application-Id',
 	 'Service-Context-Id', 'CC-Request-Type',
 	 'CC-Request-Number', 'Destination-Host' = [],
-	 'User-Name' = [], 'CC-Sub-Session-Id' = [],
-	 'Acct-Multi-Session-Id' = [], 'Origin-State-Id' = [],
+	 'User-Name' = [], 'Origin-State-Id' = [],
 	 'Event-Timestamp' = [], 'Subscription-Id' = [],
-	 'Service-Identifier' = [], 'Termination-Cause' = [],
-	 'Requested-Service-Unit' = [], 'Requested-Action' = [],
-	 'Used-Service-Unit' = [],
+	 'Termination-Cause' = [], 'Requested-Action' = [],
+	 'AoC-Request-Type' = [],
 	 'Multiple-Services-Indicator' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'Service-Parameter-Info' = [], 'CC-Correlation-Id' = [],
-	 'User-Equipment-Info' = [], 'Proxy-Info' = [],
-	 'Route-Record' = [], 'Service-Information' = [],
-	 'AVP' = []}).
+	 'CC-Correlation-Id' = [], 'User-Equipment-Info' = [],
+	 'Proxy-Info' = [], 'Route-Record' = [],
+	 'Service-Information' = [], 'AVP' = []}).
 
 -record(rfc4006_cc_Gy_CCA,
 	{'Session-Id', 'Result-Code', 'Origin-Host',
 	 'Origin-Realm', 'Auth-Application-Id',
 	 'CC-Request-Type', 'CC-Request-Number',
-	 'User-Name' = [], 'CC-Session-Failover' = [],
-	 'CC-Sub-Session-Id' = [], 'Acct-Multi-Session-Id' = [],
-	 'Origin-State-Id' = [], 'Event-Timestamp' = [],
-	 'Granted-Service-Unit' = [],
+	 'CC-Session-Failover' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'Cost-Information' = [], 'Final-Unit-Indication' = [],
-	 'Check-Balance-Result' = [],
+	 'Cost-Information' = [], 'Low-Balance-Indication' = [],
+	 'Remaining-Balance' = [],
 	 'Credit-Control-Failure-Handling' = [],
 	 'Direct-Debiting-Failure-Handling' = [],
-	 'Validity-Time' = [], 'Redirect-Host' = [],
-	 'Redirect-Host-Usage' = [],
+	 'Redirect-Host' = [], 'Redirect-Host-Usage' = [],
 	 'Redirect-Max-Cache-Time' = [], 'Proxy-Info' = [],
-	 'Route-Record' = [], 'Failed-AVP' = [], 'AVP' = []}).
+	 'Route-Record' = [], 'Failed-AVP' = [],
+	 'Service-Information' = [], 'AVP' = []}).
 
 -record('rfc4006_cc_Gy_Cost-Information',
 	{'Unit-Value', 'Currency-Code', 'Cost-Unit' = []}).
@@ -141,14 +136,20 @@
 	{'PS-Information' = []}).
 
 -record('rfc4006_cc_Gy_PS-Information',
-	{'3GPP-Charging-Id', '3GPP-PDP-Type', 'PDP-Address',
-	 '3GPP-GPRS-Neg-QoS-Profile', 'SGSN-Address',
-	 'GGSN-Address', 'CG-Address', '3GPP-IMSI-MCC-MNC',
-	 '3GPP-GGSN-MCC-MNC', '3GPP-NSAPI', 'Called-Station-Id',
-	 '3GPP-Selection-Mode', '3GPP-Charging-Characteristics',
-	 '3GPP-SGSN-PLMN-Id', '3GPP-MS-Time-Zone',
-	 '3GPP-CAMEL-Charging-Info', '3GPP-User-Location-Info',
-	 '3GPP-RAT-Type', 'Filter-Id'}).
+	{'3GPP-Charging-Id' = [], '3GPP-PDP-Type' = [],
+	 'PDP-Address' = [], '3GPP-GPRS-Neg-QoS-Profile' = [],
+	 'SGSN-Address' = [], 'GGSN-Address' = [],
+	 'CG-Address' = [], '3GPP-IMSI-MCC-MNC' = [],
+	 '3GPP-GGSN-MCC-MNC' = [], '3GPP-NSAPI' = [],
+	 'Called-Station-Id' = [], '3GPP-Selection-Mode' = [],
+	 '3GPP-Charging-Characteristics' = [],
+	 '3GPP-SGSN-PLMN-Id' = [], '3GPP-MS-Time-Zone' = [],
+	 '3GPP-CAMEL-Charging-Info' = [],
+	 '3GPP-User-Location-Info' = [], '3GPP-RAT-Type' = [],
+	 'Filter-Id' = []}).
+
+-record('rfc4006_cc_Gy_Remaining-Balance',
+	{'Unit-Value', 'Currency-Code'}).
 
 -record('rfc4006_cc_Gy_Proxy-Info',
 	{'Proxy-Host', 'Proxy-State', 'AVP' = []}).
@@ -224,6 +225,8 @@ name2rec('Service-Information') ->
     'rfc4006_cc_Gy_Service-Information';
 name2rec('PS-Information') ->
     'rfc4006_cc_Gy_PS-Information';
+name2rec('Remaining-Balance') ->
+    'rfc4006_cc_Gy_Remaining-Balance';
 name2rec('Proxy-Info') -> 'rfc4006_cc_Gy_Proxy-Info';
 name2rec('Failed-AVP') -> 'rfc4006_cc_Gy_Failed-AVP';
 name2rec('Experimental-Result') ->
@@ -255,6 +258,8 @@ avp_name(12, 10415) ->
     {'3GPP-Selection-Mode', 'UTF8String'};
 avp_name(22, 10415) ->
     {'3GPP-User-Location-Info', 'UTF8String'};
+avp_name(2055, 10415) ->
+    {'AoC-Request-Type', 'Enumerated'};
 avp_name(411, undefined) ->
     {'CC-Correlation-Id', 'OctetString'};
 avp_name(412, undefined) ->
@@ -270,8 +275,6 @@ avp_name(417, undefined) ->
     {'CC-Service-Specific-Units', 'Unsigned64'};
 avp_name(418, undefined) ->
     {'CC-Session-Failover', 'Enumerated'};
-avp_name(419, undefined) ->
-    {'CC-Sub-Session-Id', 'Unsigned64'};
 avp_name(420, undefined) -> {'CC-Time', 'Unsigned32'};
 avp_name(421, undefined) ->
     {'CC-Total-Octets', 'Unsigned64'};
@@ -305,6 +308,8 @@ avp_name(457, undefined) ->
 avp_name(847, 10415) -> {'GGSN-Address', 'Address'};
 avp_name(431, undefined) ->
     {'Granted-Service-Unit', 'Grouped'};
+avp_name(2020, 10415) ->
+    {'Low-Balance-Indication', 'Enumerated'};
 avp_name(456, undefined) ->
     {'Multiple-Services-Credit-Control', 'Grouped'};
 avp_name(455, undefined) ->
@@ -319,6 +324,8 @@ avp_name(434, undefined) ->
     {'Redirect-Server', 'Grouped'};
 avp_name(435, undefined) ->
     {'Redirect-Server-Address', 'UTF8String'};
+avp_name(2021, 10415) ->
+    {'Remaining-Balance', 'Grouped'};
 avp_name(872, 10415) ->
     {'Reporting-Reason', 'Enumerated'};
 avp_name(436, undefined) ->
@@ -468,21 +475,16 @@ avp_arity('CCR', 'CC-Request-Type') -> 1;
 avp_arity('CCR', 'CC-Request-Number') -> 1;
 avp_arity('CCR', 'Destination-Host') -> {0, 1};
 avp_arity('CCR', 'User-Name') -> {0, 1};
-avp_arity('CCR', 'CC-Sub-Session-Id') -> {0, 1};
-avp_arity('CCR', 'Acct-Multi-Session-Id') -> {0, 1};
 avp_arity('CCR', 'Origin-State-Id') -> {0, 1};
 avp_arity('CCR', 'Event-Timestamp') -> {0, 1};
 avp_arity('CCR', 'Subscription-Id') -> {0, '*'};
-avp_arity('CCR', 'Service-Identifier') -> {0, 1};
 avp_arity('CCR', 'Termination-Cause') -> {0, 1};
-avp_arity('CCR', 'Requested-Service-Unit') -> {0, 1};
 avp_arity('CCR', 'Requested-Action') -> {0, 1};
-avp_arity('CCR', 'Used-Service-Unit') -> {0, '*'};
+avp_arity('CCR', 'AoC-Request-Type') -> {0, 1};
 avp_arity('CCR', 'Multiple-Services-Indicator') ->
     {0, 1};
 avp_arity('CCR', 'Multiple-Services-Credit-Control') ->
     {0, '*'};
-avp_arity('CCR', 'Service-Parameter-Info') -> {0, '*'};
 avp_arity('CCR', 'CC-Correlation-Id') -> {0, 1};
 avp_arity('CCR', 'User-Equipment-Info') -> {0, 1};
 avp_arity('CCR', 'Proxy-Info') -> {0, '*'};
@@ -496,29 +498,23 @@ avp_arity('CCA', 'Origin-Realm') -> 1;
 avp_arity('CCA', 'Auth-Application-Id') -> 1;
 avp_arity('CCA', 'CC-Request-Type') -> 1;
 avp_arity('CCA', 'CC-Request-Number') -> 1;
-avp_arity('CCA', 'User-Name') -> {0, 1};
 avp_arity('CCA', 'CC-Session-Failover') -> {0, 1};
-avp_arity('CCA', 'CC-Sub-Session-Id') -> {0, 1};
-avp_arity('CCA', 'Acct-Multi-Session-Id') -> {0, 1};
-avp_arity('CCA', 'Origin-State-Id') -> {0, 1};
-avp_arity('CCA', 'Event-Timestamp') -> {0, 1};
-avp_arity('CCA', 'Granted-Service-Unit') -> {0, 1};
 avp_arity('CCA', 'Multiple-Services-Credit-Control') ->
     {0, '*'};
 avp_arity('CCA', 'Cost-Information') -> {0, 1};
-avp_arity('CCA', 'Final-Unit-Indication') -> {0, 1};
-avp_arity('CCA', 'Check-Balance-Result') -> {0, 1};
+avp_arity('CCA', 'Low-Balance-Indication') -> {0, 1};
+avp_arity('CCA', 'Remaining-Balance') -> {0, 1};
 avp_arity('CCA', 'Credit-Control-Failure-Handling') ->
     {0, 1};
 avp_arity('CCA', 'Direct-Debiting-Failure-Handling') ->
     {0, 1};
-avp_arity('CCA', 'Validity-Time') -> {0, 1};
 avp_arity('CCA', 'Redirect-Host') -> {0, '*'};
 avp_arity('CCA', 'Redirect-Host-Usage') -> {0, 1};
 avp_arity('CCA', 'Redirect-Max-Cache-Time') -> {0, 1};
 avp_arity('CCA', 'Proxy-Info') -> {0, '*'};
 avp_arity('CCA', 'Route-Record') -> {0, '*'};
 avp_arity('CCA', 'Failed-AVP') -> {0, '*'};
+avp_arity('CCA', 'Service-Information') -> {0, 1};
 avp_arity('CCA', 'AVP') -> {0, '*'};
 avp_arity('Cost-Information', 'Unit-Value') -> 1;
 avp_arity('Cost-Information', 'Currency-Code') -> 1;
@@ -651,33 +647,42 @@ avp_arity('User-Equipment-Info',
     1;
 avp_arity('Service-Information', 'PS-Information') ->
     {0, 1};
-avp_arity('PS-Information', '3GPP-Charging-Id') -> 1;
-avp_arity('PS-Information', '3GPP-PDP-Type') -> 1;
-avp_arity('PS-Information', 'PDP-Address') -> 1;
+avp_arity('PS-Information', '3GPP-Charging-Id') ->
+    {0, 1};
+avp_arity('PS-Information', '3GPP-PDP-Type') -> {0, 1};
+avp_arity('PS-Information', 'PDP-Address') -> {0, '*'};
 avp_arity('PS-Information',
 	  '3GPP-GPRS-Neg-QoS-Profile') ->
-    1;
-avp_arity('PS-Information', 'SGSN-Address') -> 1;
-avp_arity('PS-Information', 'GGSN-Address') -> 1;
-avp_arity('PS-Information', 'CG-Address') -> 1;
-avp_arity('PS-Information', '3GPP-IMSI-MCC-MNC') -> 1;
-avp_arity('PS-Information', '3GPP-GGSN-MCC-MNC') -> 1;
-avp_arity('PS-Information', '3GPP-NSAPI') -> 1;
-avp_arity('PS-Information', 'Called-Station-Id') -> 1;
-avp_arity('PS-Information', '3GPP-Selection-Mode') -> 1;
+    {0, 1};
+avp_arity('PS-Information', 'SGSN-Address') -> {0, '*'};
+avp_arity('PS-Information', 'GGSN-Address') -> {0, '*'};
+avp_arity('PS-Information', 'CG-Address') -> {0, 1};
+avp_arity('PS-Information', '3GPP-IMSI-MCC-MNC') ->
+    {0, 1};
+avp_arity('PS-Information', '3GPP-GGSN-MCC-MNC') ->
+    {0, 1};
+avp_arity('PS-Information', '3GPP-NSAPI') -> {0, 1};
+avp_arity('PS-Information', 'Called-Station-Id') ->
+    {0, 1};
+avp_arity('PS-Information', '3GPP-Selection-Mode') ->
+    {0, 1};
 avp_arity('PS-Information',
 	  '3GPP-Charging-Characteristics') ->
-    1;
-avp_arity('PS-Information', '3GPP-SGSN-PLMN-Id') -> 1;
-avp_arity('PS-Information', '3GPP-MS-Time-Zone') -> 1;
+    {0, 1};
+avp_arity('PS-Information', '3GPP-SGSN-PLMN-Id') ->
+    {0, 1};
+avp_arity('PS-Information', '3GPP-MS-Time-Zone') ->
+    {0, 1};
 avp_arity('PS-Information',
 	  '3GPP-CAMEL-Charging-Info') ->
-    1;
+    {0, 1};
 avp_arity('PS-Information',
 	  '3GPP-User-Location-Info') ->
-    1;
-avp_arity('PS-Information', '3GPP-RAT-Type') -> 1;
-avp_arity('PS-Information', 'Filter-Id') -> 1;
+    {0, 1};
+avp_arity('PS-Information', '3GPP-RAT-Type') -> {0, 1};
+avp_arity('PS-Information', 'Filter-Id') -> {0, 1};
+avp_arity('Remaining-Balance', 'Unit-Value') -> 1;
+avp_arity('Remaining-Balance', 'Currency-Code') -> 1;
 avp_arity('Proxy-Info', 'Proxy-Host') -> 1;
 avp_arity('Proxy-Info', 'Proxy-State') -> 1;
 avp_arity('Proxy-Info', 'AVP') -> {0, '*'};
@@ -698,22 +703,23 @@ avp_arity('Vendor-Specific-Application-Id',
 avp_arity(_, _) -> 0.
 
 avp_header('3GPP-CAMEL-Charging-Info') ->
-    {24, 192, 10415};
+    {24, 128, 10415};
 avp_header('3GPP-Charging-Characteristics') ->
-    {13, 192, 10415};
-avp_header('3GPP-Charging-Id') -> {2, 192, 10415};
-avp_header('3GPP-GGSN-MCC-MNC') -> {9, 192, 10415};
+    {13, 128, 10415};
+avp_header('3GPP-Charging-Id') -> {2, 128, 10415};
+avp_header('3GPP-GGSN-MCC-MNC') -> {9, 128, 10415};
 avp_header('3GPP-GPRS-Neg-QoS-Profile') ->
-    {5, 192, 10415};
-avp_header('3GPP-IMSI-MCC-MNC') -> {8, 192, 10415};
-avp_header('3GPP-MS-Time-Zone') -> {23, 192, 10415};
-avp_header('3GPP-NSAPI') -> {10, 192, 10415};
-avp_header('3GPP-PDP-Type') -> {3, 192, 10415};
-avp_header('3GPP-RAT-Type') -> {21, 192, 10415};
-avp_header('3GPP-SGSN-PLMN-Id') -> {18, 192, 10415};
-avp_header('3GPP-Selection-Mode') -> {12, 192, 10415};
+    {5, 128, 10415};
+avp_header('3GPP-IMSI-MCC-MNC') -> {8, 128, 10415};
+avp_header('3GPP-MS-Time-Zone') -> {23, 128, 10415};
+avp_header('3GPP-NSAPI') -> {10, 128, 10415};
+avp_header('3GPP-PDP-Type') -> {3, 128, 10415};
+avp_header('3GPP-RAT-Type') -> {21, 128, 10415};
+avp_header('3GPP-SGSN-PLMN-Id') -> {18, 128, 10415};
+avp_header('3GPP-Selection-Mode') -> {12, 128, 10415};
 avp_header('3GPP-User-Location-Info') ->
-    {22, 192, 10415};
+    {22, 128, 10415};
+avp_header('AoC-Request-Type') -> {2055, 192, 10415};
 avp_header('CC-Correlation-Id') -> {411, 0, undefined};
 avp_header('CC-Input-Octets') -> {412, 64, undefined};
 avp_header('CC-Money') -> {413, 64, undefined};
@@ -724,12 +730,11 @@ avp_header('CC-Service-Specific-Units') ->
     {417, 64, undefined};
 avp_header('CC-Session-Failover') ->
     {418, 64, undefined};
-avp_header('CC-Sub-Session-Id') -> {419, 64, undefined};
 avp_header('CC-Time') -> {420, 64, undefined};
 avp_header('CC-Total-Octets') -> {421, 64, undefined};
 avp_header('CC-Unit-Type') -> {454, 64, undefined};
 avp_header('CG-Address') -> {846, 192, 10415};
-avp_header('Called-Station-Id') -> {30, 192, 10415};
+avp_header('Called-Station-Id') -> {30, 128, 10415};
 avp_header('Check-Balance-Result') ->
     {422, 64, undefined};
 avp_header('Cost-Information') -> {423, 64, undefined};
@@ -751,6 +756,8 @@ avp_header('G-S-U-Pool-Reference') ->
 avp_header('GGSN-Address') -> {847, 192, 10415};
 avp_header('Granted-Service-Unit') ->
     {431, 64, undefined};
+avp_header('Low-Balance-Indication') ->
+    {2020, 192, 10415};
 avp_header('Multiple-Services-Credit-Control') ->
     {456, 64, undefined};
 avp_header('Multiple-Services-Indicator') ->
@@ -763,6 +770,7 @@ avp_header('Redirect-Address-Type') ->
 avp_header('Redirect-Server') -> {434, 64, undefined};
 avp_header('Redirect-Server-Address') ->
     {435, 64, undefined};
+avp_header('Remaining-Balance') -> {2021, 192, 10415};
 avp_header('Reporting-Reason') -> {872, 192, 10415};
 avp_header('Requested-Action') -> {436, 64, undefined};
 avp_header('Requested-Service-Unit') ->
@@ -928,6 +936,8 @@ avp(T, Data, '3GPP-Selection-Mode') ->
     diameter_types:'UTF8String'(T, Data);
 avp(T, Data, '3GPP-User-Location-Info') ->
     diameter_types:'UTF8String'(T, Data);
+avp(T, Data, 'AoC-Request-Type') ->
+    enumerated_avp(T, 'AoC-Request-Type', Data);
 avp(T, Data, 'CC-Correlation-Id') ->
     diameter_types:'OctetString'(T, Data);
 avp(T, Data, 'CC-Input-Octets') ->
@@ -944,8 +954,6 @@ avp(T, Data, 'CC-Service-Specific-Units') ->
     diameter_types:'Unsigned64'(T, Data);
 avp(T, Data, 'CC-Session-Failover') ->
     enumerated_avp(T, 'CC-Session-Failover', Data);
-avp(T, Data, 'CC-Sub-Session-Id') ->
-    diameter_types:'Unsigned64'(T, Data);
 avp(T, Data, 'CC-Time') ->
     diameter_types:'Unsigned32'(T, Data);
 avp(T, Data, 'CC-Total-Octets') ->
@@ -986,6 +994,8 @@ avp(T, Data, 'GGSN-Address') ->
     diameter_types:'Address'(T, Data);
 avp(T, Data, 'Granted-Service-Unit') ->
     grouped_avp(T, 'Granted-Service-Unit', Data);
+avp(T, Data, 'Low-Balance-Indication') ->
+    enumerated_avp(T, 'Low-Balance-Indication', Data);
 avp(T, Data, 'Multiple-Services-Credit-Control') ->
     grouped_avp(T, 'Multiple-Services-Credit-Control',
 		Data);
@@ -1003,6 +1013,8 @@ avp(T, Data, 'Redirect-Server') ->
     grouped_avp(T, 'Redirect-Server', Data);
 avp(T, Data, 'Redirect-Server-Address') ->
     diameter_types:'UTF8String'(T, Data);
+avp(T, Data, 'Remaining-Balance') ->
+    grouped_avp(T, 'Remaining-Balance', Data);
 avp(T, Data, 'Reporting-Reason') ->
     enumerated_avp(T, 'Reporting-Reason', Data);
 avp(T, Data, 'Requested-Action') ->
@@ -1465,6 +1477,36 @@ enumerated_avp(decode, 'Reporting-Reason',
     8;
 enumerated_avp(encode, 'Reporting-Reason', 8) ->
     <<0, 0, 0, 8>>;
+enumerated_avp(decode, 'AoC-Request-Type',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'AoC-Request-Type', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'AoC-Request-Type',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'AoC-Request-Type', 1) ->
+    <<0, 0, 0, 1>>;
+enumerated_avp(decode, 'AoC-Request-Type',
+	       <<0, 0, 0, 2>>) ->
+    2;
+enumerated_avp(encode, 'AoC-Request-Type', 2) ->
+    <<0, 0, 0, 2>>;
+enumerated_avp(decode, 'AoC-Request-Type',
+	       <<0, 0, 0, 3>>) ->
+    3;
+enumerated_avp(encode, 'AoC-Request-Type', 3) ->
+    <<0, 0, 0, 3>>;
+enumerated_avp(decode, 'Low-Balance-Indication',
+	       <<0, 0, 0, 0>>) ->
+    0;
+enumerated_avp(encode, 'Low-Balance-Indication', 0) ->
+    <<0, 0, 0, 0>>;
+enumerated_avp(decode, 'Low-Balance-Indication',
+	       <<0, 0, 0, 1>>) ->
+    1;
+enumerated_avp(encode, 'Low-Balance-Indication', 1) ->
+    <<0, 0, 0, 1>>;
 enumerated_avp(_, _, _) -> erlang:error(badarg).
 
 empty_value('Cost-Information') ->
@@ -1495,6 +1537,8 @@ empty_value('Service-Information') ->
     empty_group('Service-Information');
 empty_value('PS-Information') ->
     empty_group('PS-Information');
+empty_value('Remaining-Balance') ->
+    empty_group('Remaining-Balance');
 empty_value('Proxy-Info') -> empty_group('Proxy-Info');
 empty_value('Failed-AVP') -> empty_group('Failed-AVP');
 empty_value('Experimental-Result') ->
@@ -1520,6 +1564,8 @@ empty_value('Subscription-Id-Type') -> <<0, 0, 0, 0>>;
 empty_value('User-Equipment-Info-Type') ->
     <<0, 0, 0, 0>>;
 empty_value('Reporting-Reason') -> <<0, 0, 0, 0>>;
+empty_value('AoC-Request-Type') -> <<0, 0, 0, 0>>;
+empty_value('Low-Balance-Indication') -> <<0, 0, 0, 0>>;
 empty_value('Disconnect-Cause') -> <<0, 0, 0, 0>>;
 empty_value('Redirect-Host-Usage') -> <<0, 0, 0, 0>>;
 empty_value('Auth-Request-Type') -> <<0, 0, 0, 0>>;
@@ -1536,20 +1582,21 @@ empty_value(Name) -> empty(Name).
 dict() ->
     [1,
      {avp_types,
-      [{"3GPP-CAMEL-Charging-Info", 24, "UTF8String", "MV"},
+      [{"3GPP-CAMEL-Charging-Info", 24, "UTF8String", "V"},
        {"3GPP-Charging-Characteristics", 13, "OctetString",
-	"MV"},
-       {"3GPP-Charging-Id", 2, "Unsigned32", "MV"},
-       {"3GPP-GGSN-MCC-MNC", 9, "UTF8String", "MV"},
-       {"3GPP-GPRS-Neg-QoS-Profile", 5, "UTF8String", "MV"},
-       {"3GPP-IMSI-MCC-MNC", 8, "UTF8String", "MV"},
-       {"3GPP-MS-Time-Zone", 23, "OctetString", "MV"},
-       {"3GPP-NSAPI", 10, "UTF8String", "MV"},
-       {"3GPP-PDP-Type", 3, "Unsigned32", "MV"},
-       {"3GPP-RAT-Type", 21, "OctetString", "MV"},
-       {"3GPP-SGSN-PLMN-Id", 18, "OctetString", "MV"},
-       {"3GPP-Selection-Mode", 12, "UTF8String", "MV"},
-       {"3GPP-User-Location-Info", 22, "UTF8String", "MV"},
+	"V"},
+       {"3GPP-Charging-Id", 2, "Unsigned32", "V"},
+       {"3GPP-GGSN-MCC-MNC", 9, "UTF8String", "V"},
+       {"3GPP-GPRS-Neg-QoS-Profile", 5, "UTF8String", "V"},
+       {"3GPP-IMSI-MCC-MNC", 8, "UTF8String", "V"},
+       {"3GPP-MS-Time-Zone", 23, "OctetString", "V"},
+       {"3GPP-NSAPI", 10, "UTF8String", "V"},
+       {"3GPP-PDP-Type", 3, "Unsigned32", "V"},
+       {"3GPP-RAT-Type", 21, "OctetString", "V"},
+       {"3GPP-SGSN-PLMN-Id", 18, "OctetString", "V"},
+       {"3GPP-Selection-Mode", 12, "UTF8String", "V"},
+       {"3GPP-User-Location-Info", 22, "UTF8String", "V"},
+       {"AoC-Request-Type", 2055, "Enumerated", "MV"},
        {"CC-Correlation-Id", 411, "OctetString", []},
        {"CC-Input-Octets", 412, "Unsigned64", "M"},
        {"CC-Money", 413, "Grouped", "M"},
@@ -1558,12 +1605,11 @@ dict() ->
        {"CC-Request-Type", 416, "Enumerated", "M"},
        {"CC-Service-Specific-Units", 417, "Unsigned64", "M"},
        {"CC-Session-Failover", 418, "Enumerated", "M"},
-       {"CC-Sub-Session-Id", 419, "Unsigned64", "M"},
        {"CC-Time", 420, "Unsigned32", "M"},
        {"CC-Total-Octets", 421, "Unsigned64", "M"},
        {"CC-Unit-Type", 454, "Enumerated", "M"},
        {"CG-Address", 846, "Address", "MV"},
-       {"Called-Station-Id", 30, "UTF8String", "MV"},
+       {"Called-Station-Id", 30, "UTF8String", "V"},
        {"Check-Balance-Result", 422, "Enumerated", "M"},
        {"Cost-Information", 423, "Grouped", "M"},
        {"Cost-Unit", 424, "UTF8String", "M"},
@@ -1580,6 +1626,7 @@ dict() ->
        {"G-S-U-Pool-Reference", 457, "Grouped", "M"},
        {"GGSN-Address", 847, "Address", "MV"},
        {"Granted-Service-Unit", 431, "Grouped", "M"},
+       {"Low-Balance-Indication", 2020, "Enumerated", "MV"},
        {"Multiple-Services-Credit-Control", 456, "Grouped",
 	"M"},
        {"Multiple-Services-Indicator", 455, "Enumerated", "M"},
@@ -1589,6 +1636,7 @@ dict() ->
        {"Redirect-Address-Type", 433, "Enumerated", "M"},
        {"Redirect-Server", 434, "Grouped", "M"},
        {"Redirect-Server-Address", 435, "UTF8String", "M"},
+       {"Remaining-Balance", 2021, "Grouped", "MV"},
        {"Reporting-Reason", 872, "Enumerated", "MV"},
        {"Requested-Action", 436, "Enumerated", "M"},
        {"Requested-Service-Unit", 437, "Grouped", "M"},
@@ -1665,8 +1713,12 @@ dict() ->
 	[{"THRESHOLD", 0}, {"QHT", 1}, {"FINAL", 2},
 	 {"QUOTA_EXAUSTED", 3}, {"VALIDITY_TIME", 4},
 	 {"OTHER_QUOTA_TYPE", 5}, {"RATING_CONDITION_CHANGE", 6},
-	 {"FORCED_REAUTHORIZATION", 7},
-	 {"POOL_EXHAUSTED", 8}]}]},
+	 {"FORCED_REAUTHORIZATION", 7}, {"POOL_EXHAUSTED", 8}]},
+       {"AoC-Request-Type",
+	[{"AoC_NOT_REQUESTE", 0}, {"AoC_FULL", 1},
+	 {"AoC_COST_ONLY", 2}, {"AoC_TARIFF_ONLY", 3}]},
+       {"Low-Balance-Indication",
+	[{"NOT-APPLICABLE", 0}, {"YES", 1}]}]},
      {grouped,
       [{"Cost-Information", 423, [],
 	[{"Unit-Value"}, {"Currency-Code"}, ["Cost-Unit"]]},
@@ -1716,17 +1768,19 @@ dict() ->
 	 {"User-Equipment-Info-Value"}]},
        {"Service-Information", 873, [], [["PS-Information"]]},
        {"PS-Information", 874, [],
-	[{"3GPP-Charging-Id"}, {"3GPP-PDP-Type"},
-	 {"PDP-Address"}, {"3GPP-GPRS-Neg-QoS-Profile"},
-	 {"SGSN-Address"}, {"GGSN-Address"}, {"CG-Address"},
-	 {"3GPP-IMSI-MCC-MNC"}, {"3GPP-GGSN-MCC-MNC"},
-	 {"3GPP-NSAPI"}, {"Called-Station-Id"},
-	 {"3GPP-Selection-Mode"},
-	 {"3GPP-Charging-Characteristics"},
-	 {"3GPP-SGSN-PLMN-Id"}, {"3GPP-MS-Time-Zone"},
-	 {"3GPP-CAMEL-Charging-Info"},
-	 {"3GPP-User-Location-Info"}, {"3GPP-RAT-Type"},
-	 {"Filter-Id"}]}]},
+	[["3GPP-Charging-Id"], ["3GPP-PDP-Type"],
+	 {'*', ["PDP-Address"]}, ["3GPP-GPRS-Neg-QoS-Profile"],
+	 {'*', ["SGSN-Address"]}, {'*', ["GGSN-Address"]},
+	 ["CG-Address"], ["3GPP-IMSI-MCC-MNC"],
+	 ["3GPP-GGSN-MCC-MNC"], ["3GPP-NSAPI"],
+	 ["Called-Station-Id"], ["3GPP-Selection-Mode"],
+	 ["3GPP-Charging-Characteristics"],
+	 ["3GPP-SGSN-PLMN-Id"], ["3GPP-MS-Time-Zone"],
+	 ["3GPP-CAMEL-Charging-Info"],
+	 ["3GPP-User-Location-Info"], ["3GPP-RAT-Type"],
+	 ["Filter-Id"]]},
+       {"Remaining-Balance", 2021, [],
+	[{"Unit-Value"}, {"Currency-Code"}]}]},
      {id, 4},
      {import_avps,
       [{diameter_gen_base_rfc6733,
@@ -1832,15 +1886,11 @@ dict() ->
 	 {"Destination-Realm"}, {"Auth-Application-Id"},
 	 {"Service-Context-Id"}, {"CC-Request-Type"},
 	 {"CC-Request-Number"}, ["Destination-Host"],
-	 ["User-Name"], ["CC-Sub-Session-Id"],
-	 ["Acct-Multi-Session-Id"], ["Origin-State-Id"],
-	 ["Event-Timestamp"], {'*', ["Subscription-Id"]},
-	 ["Service-Identifier"], ["Termination-Cause"],
-	 ["Requested-Service-Unit"], ["Requested-Action"],
-	 {'*', ["Used-Service-Unit"]},
+	 ["User-Name"], ["Origin-State-Id"], ["Event-Timestamp"],
+	 {'*', ["Subscription-Id"]}, ["Termination-Cause"],
+	 ["Requested-Action"], ["AoC-Request-Type"],
 	 ["Multiple-Services-Indicator"],
 	 {'*', ["Multiple-Services-Credit-Control"]},
-	 {'*', ["Service-Parameter-Info"]},
 	 ["CC-Correlation-Id"], ["User-Equipment-Info"],
 	 {'*', ["Proxy-Info"]}, {'*', ["Route-Record"]},
 	 ["Service-Information"], {'*', ["AVP"]}]},
@@ -1848,19 +1898,16 @@ dict() ->
 	[{{"Session-Id"}}, {"Result-Code"}, {"Origin-Host"},
 	 {"Origin-Realm"}, {"Auth-Application-Id"},
 	 {"CC-Request-Type"}, {"CC-Request-Number"},
-	 ["User-Name"], ["CC-Session-Failover"],
-	 ["CC-Sub-Session-Id"], ["Acct-Multi-Session-Id"],
-	 ["Origin-State-Id"], ["Event-Timestamp"],
-	 ["Granted-Service-Unit"],
+	 ["CC-Session-Failover"],
 	 {'*', ["Multiple-Services-Credit-Control"]},
-	 ["Cost-Information"], ["Final-Unit-Indication"],
-	 ["Check-Balance-Result"],
+	 ["Cost-Information"], ["Low-Balance-Indication"],
+	 ["Remaining-Balance"],
 	 ["Credit-Control-Failure-Handling"],
-	 ["Direct-Debiting-Failure-Handling"], ["Validity-Time"],
+	 ["Direct-Debiting-Failure-Handling"],
 	 {'*', ["Redirect-Host"]}, ["Redirect-Host-Usage"],
 	 ["Redirect-Max-Cache-Time"], {'*', ["Proxy-Info"]},
 	 {'*', ["Route-Record"]}, {'*', ["Failed-AVP"]},
-	 {'*', ["AVP"]}]}]},
+	 ["Service-Information"], {'*', ["AVP"]}]}]},
      {name, "rfc4006_cc_Gy"}, {prefix, "rfc4006_cc_Gy"},
      {vendor, {10415, "3GPP"}}].
 

@@ -39,7 +39,6 @@
    CC-Request-Type                   416    Enumerated    M
    CC-Service-Specific-Units         417    Unsigned64    M
    CC-Session-Failover               418    Enumerated    M
-   CC-Sub-Session-Id                 419    Unsigned64    M
    CC-Time                           420    Unsigned32    M
    CC-Total-Octets                   421    Unsigned64    M
    CC-Unit-Type                      454    Enumerated    M
@@ -62,6 +61,7 @@
    Redirect-Address-Type             433    Enumerated    M
    Redirect-Server                   434    Grouped       M
    Redirect-Server-Address           435    UTF8String    M
+   AoC-Request-Type                 2055    Enumerated    MV
    Requested-Action                  436    Enumerated    M
    Requested-Service-Unit            437    Grouped       M
    Restriction-Filter-Rule           438    IPFilterRule  M
@@ -103,6 +103,9 @@
    3GPP-CAMEL-Charging-Info           24    UTF8String    V
    3GPP-User-Location-Info            22    UTF8String    V
    3GPP-RAT-Type                      21    OctetString   V
+   Low-Balance-Indication           2020    Enumerated    MV
+   Remaining-Balance                2021    Grouped       MV
+
 
 ;; ===========================================================================
 
@@ -120,19 +123,14 @@
            { CC-Request-Number }
            [ Destination-Host ]
            [ User-Name ]
-           [ CC-Sub-Session-Id ]
-           [ Acct-Multi-Session-Id ]
            [ Origin-State-Id ]
            [ Event-Timestamp ]
          * [ Subscription-Id ]
-           [ Service-Identifier ]
            [ Termination-Cause ]
-           [ Requested-Service-Unit ]
            [ Requested-Action ]
-         * [ Used-Service-Unit ]
+           [ AoC-Request-Type ]
            [ Multiple-Services-Indicator ]
          * [ Multiple-Services-Credit-Control ]
-         * [ Service-Parameter-Info ]
            [ CC-Correlation-Id ]
            [ User-Equipment-Info ]
          * [ Proxy-Info ]
@@ -149,26 +147,20 @@
            { Auth-Application-Id }
            { CC-Request-Type }
            { CC-Request-Number }
-           [ User-Name ]
            [ CC-Session-Failover ]
-           [ CC-Sub-Session-Id ]
-           [ Acct-Multi-Session-Id ]
-           [ Origin-State-Id ]
-           [ Event-Timestamp ]
-           [ Granted-Service-Unit ]
          * [ Multiple-Services-Credit-Control ]
-           [ Cost-Information]
-           [ Final-Unit-Indication ]
-           [ Check-Balance-Result ]
+           [ Cost-Information ]
+           [ Low-Balance-Indication ]
+           [ Remaining-Balance ]
            [ Credit-Control-Failure-Handling ]
            [ Direct-Debiting-Failure-Handling ]
-           [ Validity-Time]
          * [ Redirect-Host]
            [ Redirect-Host-Usage ]
            [ Redirect-Max-Cache-Time ]
          * [ Proxy-Info ]
          * [ Route-Record ]
          * [ Failed-AVP ]
+           [ Service-Information]
          * [ AVP ]
 
 ;; ===========================================================================
@@ -275,29 +267,34 @@
 
    Service-Information ::= < AVP Header: 873 >
 
-           { PS-Information }
+           [ PS-Information ]
 
    PS-Information ::= < AVP Header: 874 >
 
-           { 3GPP-Charging-Id }
-           { 3GPP-PDP-Type }
-         * { PDP-Address }
-           { 3GPP-GPRS-Neg-QoS-Profile }
-         * { SGSN-Address }
-         * { GGSN-Address }
-           { CG-Address }
-           { 3GPP-IMSI-MCC-MNC }
-           { 3GPP-GGSN-MCC-MNC }
-           { 3GPP-NSAPI }
-           { Called-Station-Id }
-           { 3GPP-Selection-Mode }
-           { 3GPP-Charging-Characteristics }
-           { 3GPP-SGSN-PLMN-Id }
-           { 3GPP-MS-Time-Zone }
-           { 3GPP-CAMEL-Charging-Info }
-           { 3GPP-User-Location-Info }
-           { 3GPP-RAT-Type }
-           { Filter-Id }
+           [ 3GPP-Charging-Id ]
+           [ 3GPP-PDP-Type ]
+         * [ PDP-Address ]
+           [ 3GPP-GPRS-Neg-QoS-Profile ]
+         * [ SGSN-Address ]
+         * [ GGSN-Address ]
+           [ CG-Address ]
+           [ 3GPP-IMSI-MCC-MNC ]
+           [ 3GPP-GGSN-MCC-MNC ]
+           [ 3GPP-NSAPI ]
+           [ Called-Station-Id ]
+           [ 3GPP-Selection-Mode ]
+           [ 3GPP-Charging-Characteristics ]
+           [ 3GPP-SGSN-PLMN-Id ]
+           [ 3GPP-MS-Time-Zone ]
+           [ 3GPP-CAMEL-Charging-Info ]
+           [ 3GPP-User-Location-Info ]
+           [ 3GPP-RAT-Type ]
+           [ Filter-Id ]
+
+   Remaining-Balance ::= < AVP Header: 2021 >
+
+           { Unit-Value }
+           { Currency-Code }
 
 ;; ===========================================================================
 
@@ -401,6 +398,17 @@
    FORCED_REAUTHORIZATION          7
    POOL_EXHAUSTED                  8
 
+@enum AoC-Request-Type
+
+   AoC_NOT_REQUESTE                0
+   AoC_FULL                        1
+   AoC_COST_ONLY                   2
+   AoC_TARIFF_ONLY                 3
+
+@enum Low-Balance-Indication
+
+   NOT-APPLICABLE                  0
+   YES                             1
 
 ;; ===========================================================================
 

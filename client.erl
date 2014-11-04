@@ -113,18 +113,24 @@ charge_event(gprs, {MSISDN, ServiceID, RatingGroup, VolumeBytes}) ->
 %% Create the PDP context. First CCR does not contain MSCC
 create_session(gprs, {initial, MSISDN, SId, ReqN}) ->
     CCR = #rfc4006_cc_Gy_CCR{
-            'Session-Id' = SId,
-            'Auth-Application-Id' = 4,
-            'Service-Context-Id' = "gprs@diameter.com",
-            'CC-Request-Type' = ?CCR_INITIAL,
-            'CC-Request-Number' = ReqN,
-            'Event-Timestamp' = [calendar:now_to_local_time(now())],
-            'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
-                                    'Subscription-Id-Type' = ?'MSISDN',
-                                    'Subscription-Id-Data' = MSISDN
-                                }],
-            'Multiple-Services-Indicator' = [1]
-            },
+        'Session-Id' = SId,
+        'Auth-Application-Id' = 4,
+        'Service-Context-Id' = "gprs@diameter.com",
+        'CC-Request-Type' = ?CCR_INITIAL,
+        'CC-Request-Number' = ReqN,
+        'Event-Timestamp' = [calendar:now_to_local_time(now())],
+        'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
+                                'Subscription-Id-Type' = ?'MSISDN',
+                                'Subscription-Id-Data' = MSISDN
+                            }],
+        'Multiple-Services-Indicator' = [1],
+        'Service-Information' = [#'rfc4006_cc_Gy_Service-Information' {
+            'PS-Information' = #'rfc4006_cc_Gy_PS-Information' {
+                'Called-Station-Id' = 'apn.com'
+                }
+            }
+        ]
+    },
     diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []).
 
 %% Rate service
@@ -143,6 +149,7 @@ rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consumed
                                     'Subscription-Id-Data' = MSISDN
                                 }],
             'Multiple-Services-Indicator' = [1]
+            % 'Called-Station-Id' = 'apn.com'
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
 	case Ret of
@@ -185,8 +192,8 @@ rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consu
             'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
                                     'Subscription-Id-Type' = ?'MSISDN',
                                     'Subscription-Id-Data' = MSISDN
-                                }],
-            'Multiple-Services-Indicator' = [1]
+                                }]
+            % 'Called-Station-Id' = 'apn.com'
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
 	case Ret of

@@ -28,36 +28,30 @@
 	 'Destination-Realm', 'Auth-Application-Id',
 	 'Service-Context-Id', 'CC-Request-Type',
 	 'CC-Request-Number', 'Destination-Host' = [],
-	 'User-Name' = [], 'CC-Sub-Session-Id' = [],
-	 'Acct-Multi-Session-Id' = [], 'Origin-State-Id' = [],
+	 'User-Name' = [], 'Origin-State-Id' = [],
 	 'Event-Timestamp' = [], 'Subscription-Id' = [],
-	 'Service-Identifier' = [], 'Termination-Cause' = [],
-	 'Requested-Service-Unit' = [], 'Requested-Action' = [],
-	 'Used-Service-Unit' = [],
+	 'Termination-Cause' = [], 'Requested-Action' = [],
+	 'AoC-Request-Type' = [],
 	 'Multiple-Services-Indicator' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'Service-Parameter-Info' = [], 'CC-Correlation-Id' = [],
-	 'User-Equipment-Info' = [], 'Proxy-Info' = [],
-	 'Route-Record' = [], 'Service-Information' = [],
-	 'AVP' = []}).
+	 'CC-Correlation-Id' = [], 'User-Equipment-Info' = [],
+	 'Proxy-Info' = [], 'Route-Record' = [],
+	 'Service-Information' = [], 'AVP' = []}).
 
 -record(rfc4006_cc_Gy_CCA,
 	{'Session-Id', 'Result-Code', 'Origin-Host',
 	 'Origin-Realm', 'Auth-Application-Id',
 	 'CC-Request-Type', 'CC-Request-Number',
-	 'User-Name' = [], 'CC-Session-Failover' = [],
-	 'CC-Sub-Session-Id' = [], 'Acct-Multi-Session-Id' = [],
-	 'Origin-State-Id' = [], 'Event-Timestamp' = [],
-	 'Granted-Service-Unit' = [],
+	 'CC-Session-Failover' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'Cost-Information' = [], 'Final-Unit-Indication' = [],
-	 'Check-Balance-Result' = [],
+	 'Cost-Information' = [], 'Low-Balance-Indication' = [],
+	 'Remaining-Balance' = [],
 	 'Credit-Control-Failure-Handling' = [],
 	 'Direct-Debiting-Failure-Handling' = [],
-	 'Validity-Time' = [], 'Redirect-Host' = [],
-	 'Redirect-Host-Usage' = [],
+	 'Redirect-Host' = [], 'Redirect-Host-Usage' = [],
 	 'Redirect-Max-Cache-Time' = [], 'Proxy-Info' = [],
-	 'Route-Record' = [], 'Failed-AVP' = [], 'AVP' = []}).
+	 'Route-Record' = [], 'Failed-AVP' = [],
+	 'Service-Information' = [], 'AVP' = []}).
 
 
 %%% -------------------------------------------------------
@@ -127,14 +121,20 @@
 	{'PS-Information' = []}).
 
 -record('rfc4006_cc_Gy_PS-Information',
-	{'3GPP-Charging-Id', '3GPP-PDP-Type', 'PDP-Address',
-	 '3GPP-GPRS-Neg-QoS-Profile', 'SGSN-Address',
-	 'GGSN-Address', 'CG-Address', '3GPP-IMSI-MCC-MNC',
-	 '3GPP-GGSN-MCC-MNC', '3GPP-NSAPI', 'Called-Station-Id',
-	 '3GPP-Selection-Mode', '3GPP-Charging-Characteristics',
-	 '3GPP-SGSN-PLMN-Id', '3GPP-MS-Time-Zone',
-	 '3GPP-CAMEL-Charging-Info', '3GPP-User-Location-Info',
-	 '3GPP-RAT-Type', 'Filter-Id'}).
+	{'3GPP-Charging-Id' = [], '3GPP-PDP-Type' = [],
+	 'PDP-Address' = [], '3GPP-GPRS-Neg-QoS-Profile' = [],
+	 'SGSN-Address' = [], 'GGSN-Address' = [],
+	 'CG-Address' = [], '3GPP-IMSI-MCC-MNC' = [],
+	 '3GPP-GGSN-MCC-MNC' = [], '3GPP-NSAPI' = [],
+	 'Called-Station-Id' = [], '3GPP-Selection-Mode' = [],
+	 '3GPP-Charging-Characteristics' = [],
+	 '3GPP-SGSN-PLMN-Id' = [], '3GPP-MS-Time-Zone' = [],
+	 '3GPP-CAMEL-Charging-Info' = [],
+	 '3GPP-User-Location-Info' = [], '3GPP-RAT-Type' = [],
+	 'Filter-Id' = []}).
+
+-record('rfc4006_cc_Gy_Remaining-Balance',
+	{'Unit-Value', 'Currency-Code'}).
 
 
 %%% -------------------------------------------------------
@@ -213,6 +213,12 @@
 -define('RFC4006_CC_GY_REPORTING-REASON_RATING_CONDITION_CHANGE', 6).
 -define('RFC4006_CC_GY_REPORTING-REASON_FORCED_REAUTHORIZATION', 7).
 -define('RFC4006_CC_GY_REPORTING-REASON_POOL_EXHAUSTED', 8).
+-define('RFC4006_CC_GY_AOC-REQUEST-TYPE_AOC_NOT_REQUESTE', 0).
+-define('RFC4006_CC_GY_AOC-REQUEST-TYPE_AOC_FULL', 1).
+-define('RFC4006_CC_GY_AOC-REQUEST-TYPE_AOC_COST_ONLY', 2).
+-define('RFC4006_CC_GY_AOC-REQUEST-TYPE_AOC_TARIFF_ONLY', 3).
+-define('RFC4006_CC_GY_LOW-BALANCE-INDICATION_NOT-APPLICABLE', 0).
+-define('RFC4006_CC_GY_LOW-BALANCE-INDICATION_YES', 1).
 
 
 
