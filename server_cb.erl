@@ -57,29 +57,18 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
        'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
        'CC-Request-Type' = RT,
        'CC-Request-Number' = RN,
-       'Service-Context-Id' = ServiceContextId,
+       % 'Service-Context-Id' = ServiceContextId,
        'Event-Timestamp' = EventTimestamp,
-       'Subscription-Id' = [
-            #'rfc4006_cc_Gy_Subscription-Id' {
-                'Subscription-Id-Type' = ?'MSISDN',
-                'Subscription-Id-Data' = MSISDN}
-            % #'rfc4006_cc_Gy_Subscription-Id' {
-            %     'Subscription-Id-Type' = ?'IMSI',
-            %     'Subscription-Id-Data' = IMSI}
-            |_],
-       % 'Service-Information' = [#'rfc4006_cc_Gy_Service-Information' {
-       %         'PS-Information' = #'rfc4006_cc_Gy_PS-Information' {
-       %             'Called-Station-Id' = APN
-       %             }
-       %         }
-       % ],
+       'Subscription-Id' = SUBSCRIPTION,
        'Multiple-Services-Credit-Control' = MSCC
     } = Req,
+    MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
+    IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
+
     io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
     io:format("CCR OK: ~p~n", [Req]),
     io:format("MSCC ~p~n", [MSCC]),
     APN = 'apn.com',
-    IMSI = '1234567890',
     MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
     {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
@@ -108,6 +97,22 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
 handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
     io:format("Unsupported message.~n"),
     discard.
+
+getSubscriptionId(TYPE, [SUBS|T]) ->
+    % io:format("getSubscriptionId: ~w, ~w , ~w ~n",[TYPE, SUBS, T]),
+    #'rfc4006_cc_Gy_Subscription-Id'{
+        'Subscription-Id-Type' = Type,
+        'Subscription-Id-Data' = Data
+    } = SUBS,
+    case Type of
+        TYPE ->
+            Data;
+        _ ->
+            getSubscriptionId(TYPE, T)
+        end;
+getSubscriptionId(_, []) ->
+    err.
+
 
 process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp}) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
