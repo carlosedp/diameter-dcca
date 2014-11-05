@@ -44,6 +44,7 @@ handle_answer(_Packet, _Request, _SvcName, _Peer) ->
     ?UNEXPECTED.
 
 handle_error(_Reason, _Request, _SvcName, _Peer) ->
+    io:format("Request error: ~p~n", [_Reason]),
     ?UNEXPECTED.
 
 %% A request whose decode was successful ...
@@ -60,15 +61,22 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
        % 'Service-Context-Id' = ServiceContextId,
        'Event-Timestamp' = EventTimestamp,
        'Subscription-Id' = SUBSCRIPTION,
-       'Multiple-Services-Credit-Control' = MSCC
+       'Multiple-Services-Credit-Control' = MSCC,
+       'Service-Information' = [ServiceInformation]
+
+       % #'rfc4006_cc_Gy_Service-Information'{
+       %     #'rfc4006_cc_Gy_PS-Information'{ 'Called-Station-Id' = APN }
+       % }
     } = Req,
+    [PSI] = ServiceInformation#'rfc4006_cc_Gy_Service-Information'.'PS-Information',
+    APN = PSI#'rfc4006_cc_Gy_PS-Information'.'Called-Station-Id',
     MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
     IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
 
     io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
     io:format("CCR OK: ~p~n", [Req]),
     io:format("MSCC ~p~n", [MSCC]),
-    APN = 'apn.com',
+    % APN = 'apn.com',
     MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
     {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
