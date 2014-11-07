@@ -83,29 +83,52 @@
    Value-Digits                      447    Integer64     M
    Validity-Time                     448    Unsigned32    M
    Reporting-Reason                  872    Enumerated    MV
+   Trigger-Type                      870    Enumerated    MV
+   Trigger                          1264    Grouped       MV
+   Framed-IP-Address                   8    OctetString   M
+   Framed-IPv6-Prefix                 97    OctetString   M
    Service-Information               873    Grouped       MV
    PS-Information                    874    Grouped       MV
    3GPP-Charging-Id                    2    Unsigned32    V
    3GPP-PDP-Type                       3    Unsigned32    V
-   PDP-Address                      1227    Address       MV
+   3GPP-CG-Address                     4    OctetString   MV
    3GPP-GPRS-Neg-QoS-Profile           5    UTF8String    V
-   SGSN-Address                     1228    Address       MV
-   GGSN-Address                      847    Address       MV
-   CG-Address                        846    Address       MV
+   3GPP-SGSN-IP-Address                6    Unsigned32    MV
+   3GPP-GGSN-IP-Address                7    Unsigned32    MV
    3GPP-IMSI-MCC-MNC                   8    UTF8String    V
    3GPP-GGSN-MCC-MNC                   9    UTF8String    V
    3GPP-NSAPI                         10    UTF8String    V
-   Called-Station-Id                  30    UTF8String    V
+   3GPP-Session-Stop-Indicator        11    OctetString   MV
    3GPP-Selection-Mode                12    UTF8String    V
    3GPP-Charging-Characteristics      13    OctetString   V
-   3GPP-SGSN-PLMN-Id                  18    OctetString   V
+   3GPP-SGSN-MCC-MNC                  18    UTF8String    V
+   3GPP-RAT-Type                      21    OctetString   V
+   3GPP-User-Location-Info            22    UTF8String    V
    3GPP-MS-Time-Zone                  23    OctetString   V
    3GPP-CAMEL-Charging-Info           24    UTF8String    V
-   3GPP-User-Location-Info            22    UTF8String    V
-   3GPP-RAT-Type                      21    OctetString   V
+   Charging-Rule-Base-Name          1004    UTF8String    V
+   PDN-Connection-ID                2050    Unsigned32    V
+   Called-Station-Id                  30    UTF8String    V
    Low-Balance-Indication           2020    Enumerated    MV
+   PDP-Address                      1227    Address       MV
+   SGSN-Address                     1228    Address       MV
+   GGSN-Address                      847    Address       MV
+   CG-Address                        846    Address       MV
    Remaining-Balance                2021    Grouped       MV
+   Time-of-First-Usage              5103    Time          V
+   Time-of-Last-Usage               5104    Time          MV
+   Session-Start-Indicator          5105    OctetString   V
+   Rulebase-ID                      5106    UTF8String    V
+   Nokia-URI                        5112    OctetString   V
 
+
+@avp_vendor_id 94
+
+   Time-of-First-Usage
+   Time-of-Last-Usage
+   Nokia-URI
+   Rulebase-ID
+   Session-Start-Indicator
 
 ;; ===========================================================================
 
@@ -127,17 +150,31 @@
            [ Event-Timestamp ]
          * [ Subscription-Id ]
            [ Termination-Cause ]
-           [ Requested-Action ]
-           [ AoC-Request-Type ]
            [ Multiple-Services-Indicator ]
          * [ Multiple-Services-Credit-Control ]
+           [ Framed-IP-Address ]
+           [ Framed-IPv6-Prefix ]
            [ Called-Station-Id ]
-           [ CC-Correlation-Id ]
-           [ User-Equipment-Info ]
-         * [ Proxy-Info ]
-         * [ Route-Record ]
+           [ 3GPP-SGSN-IP-Address ]
+           [ 3GPP-GGSN-IP-Address ]
+           [ 3GPP-Charging-Id ]
+           [ 3GPP-GPRS-Neg-QoS-Profile ]
+           [ 3GPP-Charging-Characteristics ]
+           [ 3GPP-PDP-Type ]
+           [ 3GPP-SGSN-MCC-MNC ]
+           [ 3GPP-NSAPI ]
+           [ 3GPP-Session-Stop-Indicator ]
+           [ 3GPP-Selection-Mode ]
+           [ 3GPP-RAT-Type ]
+           [ 3GPP-User-Location-Info ]
+           [ 3GPP-MS-Time-Zone ]
+           [ 3GPP-IMSI-MCC-MNC ]
+           [ Rulebase-ID ]
+           [ Session-Start-Indicator ]
+           [ Proxy-Info ]
            [ Service-Information ]
          * [ AVP ]
+
 
    CCA ::= < Diameter Header: 272, PXY >
 
@@ -148,7 +185,10 @@
            { Auth-Application-Id }
            { CC-Request-Type }
            { CC-Request-Number }
+           [ User-Name ]
            [ CC-Session-Failover ]
+           [ Origin-State-Id ]
+           [ Event-Timestamp ]
          * [ Multiple-Services-Credit-Control ]
            [ Cost-Information ]
            [ Low-Balance-Indication ]
@@ -181,50 +221,55 @@
 
    Multiple-Services-Credit-Control ::= < AVP Header: 456 >
 
-           [ Granted-Service-Unit ]
            [ Requested-Service-Unit ]
          * [ Used-Service-Unit ]
-           [ Tariff-Change-Usage ]
+           [ Granted-Service-Unit ]
          * [ Service-Identifier ]
            [ Rating-Group ]
-         * [ G-S-U-Pool-Reference ]
+           [ Time-of-First-Usage ]
+           [ Time-of-Last-Usage ]
+         * [ Reporting-Reason ]
+           [ Nokia-URI ]
+           [ Trigger-Type ]
+           [ Trigger ]
+           [ User-Equipment-Info ]
+           [ Service-Parameter-Info ]
+           [ Framed-IP-Address ]
+           [ Framed-IPv6-Prefix ]
            [ Validity-Time ]
            [ Result-Code ]
            [ Final-Unit-Indication ]
-         * [ Reporting-Reason ]
+           [ Tariff-Change-Usage ]
+         * [ G-S-U-Pool-Reference ]
          * [ AVP ]
 
    Granted-Service-Unit ::= < AVP Header: 431 >
 
            [ Tariff-Time-Change ]
            [ CC-Time ]
-           [ CC-Money ]
-           [ CC-Total-Octets ]
            [ CC-Input-Octets ]
            [ CC-Output-Octets ]
+           [ CC-Total-Octets ]
            [ CC-Service-Specific-Units ]
          * [ AVP ]
 
    Requested-Service-Unit ::= < AVP Header: 437 >
 
            [ CC-Time ]
-           [ CC-Money ]
            [ CC-Total-Octets ]
+           [ CC-Service-Specific-Units ]
            [ CC-Input-Octets ]
            [ CC-Output-Octets ]
-           [ CC-Service-Specific-Units ]
-           [ Reporting-Reason ]
+           [ CC-Money ]
          * [ AVP ]
 
    Used-Service-Unit ::= < AVP Header: 446 >
 
            [ Tariff-Change-Usage ]
            [ CC-Time ]
-           [ CC-Money ]
-           [ CC-Total-Octets ]
            [ CC-Input-Octets ]
            [ CC-Output-Octets ]
-           [ CC-Service-Specific-Units ]
+           [ CC-Total-Octets ]
            [ Reporting-Reason ]
          * [ AVP ]
 
@@ -272,30 +317,35 @@
 
    PS-Information ::= < AVP Header: 874 >
 
-           [ 3GPP-Charging-Id ]
-           [ 3GPP-PDP-Type ]
+           [ PDN-Connection-ID ]
          * [ PDP-Address ]
-           [ 3GPP-GPRS-Neg-QoS-Profile ]
-         * [ SGSN-Address ]
-         * [ GGSN-Address ]
-           [ CG-Address ]
-           [ 3GPP-IMSI-MCC-MNC ]
-           [ 3GPP-GGSN-MCC-MNC ]
-           [ 3GPP-NSAPI ]
            [ Called-Station-Id ]
-           [ 3GPP-Selection-Mode ]
+           [ 3GPP-IMSI-MCC-MNC ]
+         * [ GGSN-Address ]
+         * [ SGSN-Address ]
+           [ 3GPP-Charging-Id ]
+           [ 3GPP-GPRS-Neg-QoS-Profile ]
            [ 3GPP-Charging-Characteristics ]
-           [ 3GPP-SGSN-PLMN-Id ]
-           [ 3GPP-MS-Time-Zone ]
-           [ 3GPP-CAMEL-Charging-Info ]
-           [ 3GPP-User-Location-Info ]
+           [ 3GPP-PDP-Type ]
+           [ 3GPP-SGSN-MCC-MNC ]
+           [ 3GPP-GGSN-MCC-MNC ]
+           [ CG-Address ]
+           [ 3GPP-NSAPI ]
+           [ 3GPP-Session-Stop-Indicator ]
+           [ 3GPP-Selection-Mode ]
            [ 3GPP-RAT-Type ]
+           [ 3GPP-User-Location-Info ]
+           [ 3GPP-MS-Time-Zone ]
+           [ Charging-Rule-Base-Name ]
            [ Filter-Id ]
 
    Remaining-Balance ::= < AVP Header: 2021 >
 
            { Unit-Value }
            { Currency-Code }
+
+   Trigger ::= < AVP Header: 1264 >
+           { Trigger-Type }
 
 ;; ===========================================================================
 
@@ -410,6 +460,11 @@
 
    NOT-APPLICABLE                  0
    YES                             1
+
+@enum Trigger-Type
+   CHANGE_IN_SGSN_IP_ADDRESS       1
+   CHANGEINQOS_ANY                 2
+   CHANGEINRAT                     4
 
 ;; ===========================================================================
 

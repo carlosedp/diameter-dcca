@@ -30,20 +30,29 @@
 	 'CC-Request-Number', 'Destination-Host' = [],
 	 'User-Name' = [], 'Origin-State-Id' = [],
 	 'Event-Timestamp' = [], 'Subscription-Id' = [],
-	 'Termination-Cause' = [], 'Requested-Action' = [],
-	 'AoC-Request-Type' = [],
+	 'Termination-Cause' = [],
 	 'Multiple-Services-Indicator' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'Called-Station-Id' = [], 'CC-Correlation-Id' = [],
-	 'User-Equipment-Info' = [], 'Proxy-Info' = [],
-	 'Route-Record' = [], 'Service-Information' = [],
+	 'Framed-IP-Address' = [], 'Framed-IPv6-Prefix' = [],
+	 'Called-Station-Id' = [], '3GPP-SGSN-IP-Address' = [],
+	 '3GPP-GGSN-IP-Address' = [], '3GPP-Charging-Id' = [],
+	 '3GPP-GPRS-Neg-QoS-Profile' = [],
+	 '3GPP-Charging-Characteristics' = [],
+	 '3GPP-PDP-Type' = [], '3GPP-SGSN-MCC-MNC' = [],
+	 '3GPP-NSAPI' = [], '3GPP-Session-Stop-Indicator' = [],
+	 '3GPP-Selection-Mode' = [], '3GPP-RAT-Type' = [],
+	 '3GPP-User-Location-Info' = [],
+	 '3GPP-MS-Time-Zone' = [], '3GPP-IMSI-MCC-MNC' = [],
+	 'Rulebase-ID' = [], 'Session-Start-Indicator' = [],
+	 'Proxy-Info' = [], 'Service-Information' = [],
 	 'AVP' = []}).
 
 -record(rfc4006_cc_Gy_CCA,
 	{'Session-Id', 'Result-Code', 'Origin-Host',
 	 'Origin-Realm', 'Auth-Application-Id',
 	 'CC-Request-Type', 'CC-Request-Number',
-	 'CC-Session-Failover' = [],
+	 'User-Name' = [], 'CC-Session-Failover' = [],
+	 'Origin-State-Id' = [], 'Event-Timestamp' = [],
 	 'Multiple-Services-Credit-Control' = [],
 	 'Cost-Information' = [], 'Low-Balance-Indication' = [],
 	 'Remaining-Balance' = [],
@@ -66,33 +75,36 @@
 	{'Value-Digits', 'Exponent' = []}).
 
 -record('rfc4006_cc_Gy_Multiple-Services-Credit-Control',
-	{'Granted-Service-Unit' = [],
-	 'Requested-Service-Unit' = [], 'Used-Service-Unit' = [],
-	 'Tariff-Change-Usage' = [], 'Service-Identifier' = [],
-	 'Rating-Group' = [], 'G-S-U-Pool-Reference' = [],
-	 'Validity-Time' = [], 'Result-Code' = [],
-	 'Final-Unit-Indication' = [], 'Reporting-Reason' = [],
+	{'Requested-Service-Unit' = [],
+	 'Used-Service-Unit' = [], 'Granted-Service-Unit' = [],
+	 'Service-Identifier' = [], 'Rating-Group' = [],
+	 'Time-of-First-Usage' = [], 'Time-of-Last-Usage' = [],
+	 'Reporting-Reason' = [], 'Nokia-URI' = [],
+	 'Trigger-Type' = [], 'Trigger' = [],
+	 'User-Equipment-Info' = [],
+	 'Service-Parameter-Info' = [], 'Framed-IP-Address' = [],
+	 'Framed-IPv6-Prefix' = [], 'Validity-Time' = [],
+	 'Result-Code' = [], 'Final-Unit-Indication' = [],
+	 'Tariff-Change-Usage' = [], 'G-S-U-Pool-Reference' = [],
 	 'AVP' = []}).
 
 -record('rfc4006_cc_Gy_Granted-Service-Unit',
 	{'Tariff-Time-Change' = [], 'CC-Time' = [],
-	 'CC-Money' = [], 'CC-Total-Octets' = [],
 	 'CC-Input-Octets' = [], 'CC-Output-Octets' = [],
+	 'CC-Total-Octets' = [],
 	 'CC-Service-Specific-Units' = [], 'AVP' = []}).
 
 -record('rfc4006_cc_Gy_Requested-Service-Unit',
-	{'CC-Time' = [], 'CC-Money' = [],
-	 'CC-Total-Octets' = [], 'CC-Input-Octets' = [],
-	 'CC-Output-Octets' = [],
+	{'CC-Time' = [], 'CC-Total-Octets' = [],
 	 'CC-Service-Specific-Units' = [],
-	 'Reporting-Reason' = [], 'AVP' = []}).
+	 'CC-Input-Octets' = [], 'CC-Output-Octets' = [],
+	 'CC-Money' = [], 'AVP' = []}).
 
 -record('rfc4006_cc_Gy_Used-Service-Unit',
 	{'Tariff-Change-Usage' = [], 'CC-Time' = [],
-	 'CC-Money' = [], 'CC-Total-Octets' = [],
 	 'CC-Input-Octets' = [], 'CC-Output-Octets' = [],
-	 'CC-Service-Specific-Units' = [],
-	 'Reporting-Reason' = [], 'AVP' = []}).
+	 'CC-Total-Octets' = [], 'Reporting-Reason' = [],
+	 'AVP' = []}).
 
 -record('rfc4006_cc_Gy_CC-Money',
 	{'Unit-Value', 'Currency-Code' = []}).
@@ -122,20 +134,24 @@
 	{'PS-Information' = []}).
 
 -record('rfc4006_cc_Gy_PS-Information',
-	{'3GPP-Charging-Id' = [], '3GPP-PDP-Type' = [],
-	 'PDP-Address' = [], '3GPP-GPRS-Neg-QoS-Profile' = [],
-	 'SGSN-Address' = [], 'GGSN-Address' = [],
-	 'CG-Address' = [], '3GPP-IMSI-MCC-MNC' = [],
-	 '3GPP-GGSN-MCC-MNC' = [], '3GPP-NSAPI' = [],
-	 'Called-Station-Id' = [], '3GPP-Selection-Mode' = [],
+	{'PDN-Connection-ID' = [], 'PDP-Address' = [],
+	 'Called-Station-Id' = [], '3GPP-IMSI-MCC-MNC' = [],
+	 'GGSN-Address' = [], 'SGSN-Address' = [],
+	 '3GPP-Charging-Id' = [],
+	 '3GPP-GPRS-Neg-QoS-Profile' = [],
 	 '3GPP-Charging-Characteristics' = [],
-	 '3GPP-SGSN-PLMN-Id' = [], '3GPP-MS-Time-Zone' = [],
-	 '3GPP-CAMEL-Charging-Info' = [],
-	 '3GPP-User-Location-Info' = [], '3GPP-RAT-Type' = [],
-	 'Filter-Id' = []}).
+	 '3GPP-PDP-Type' = [], '3GPP-SGSN-MCC-MNC' = [],
+	 '3GPP-GGSN-MCC-MNC' = [], 'CG-Address' = [],
+	 '3GPP-NSAPI' = [], '3GPP-Session-Stop-Indicator' = [],
+	 '3GPP-Selection-Mode' = [], '3GPP-RAT-Type' = [],
+	 '3GPP-User-Location-Info' = [],
+	 '3GPP-MS-Time-Zone' = [],
+	 'Charging-Rule-Base-Name' = [], 'Filter-Id' = []}).
 
 -record('rfc4006_cc_Gy_Remaining-Balance',
 	{'Unit-Value', 'Currency-Code'}).
+
+-record(rfc4006_cc_Gy_Trigger, {'Trigger-Type'}).
 
 
 %%% -------------------------------------------------------
@@ -220,6 +236,9 @@
 -define('RFC4006_CC_GY_AOC-REQUEST-TYPE_AOC_TARIFF_ONLY', 3).
 -define('RFC4006_CC_GY_LOW-BALANCE-INDICATION_NOT-APPLICABLE', 0).
 -define('RFC4006_CC_GY_LOW-BALANCE-INDICATION_YES', 1).
+-define('RFC4006_CC_GY_TRIGGER-TYPE_CHANGE_IN_SGSN_IP_ADDRESS', 1).
+-define('RFC4006_CC_GY_TRIGGER-TYPE_CHANGEINQOS_ANY', 2).
+-define('RFC4006_CC_GY_TRIGGER-TYPE_CHANGEINRAT', 4).
 
 
 
