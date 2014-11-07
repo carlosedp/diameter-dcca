@@ -308,7 +308,7 @@ avp_name(421, undefined) ->
 avp_name(454, undefined) ->
     {'CC-Unit-Type', 'Enumerated'};
 avp_name(846, 10415) -> {'CG-Address', 'Address'};
-avp_name(30, 10415) ->
+avp_name(30, undefined) ->
     {'Called-Station-Id', 'UTF8String'};
 avp_name(1004, 10415) ->
     {'Charging-Rule-Base-Name', 'UTF8String'};
@@ -790,27 +790,27 @@ avp_arity('Vendor-Specific-Application-Id',
 avp_arity(_, _) -> 0.
 
 avp_header('3GPP-CAMEL-Charging-Info') ->
-    {24, 128, 10415};
+    {24, 192, 10415};
 avp_header('3GPP-CG-Address') -> {4, 192, 10415};
 avp_header('3GPP-Charging-Characteristics') ->
-    {13, 128, 10415};
-avp_header('3GPP-Charging-Id') -> {2, 128, 10415};
+    {13, 192, 10415};
+avp_header('3GPP-Charging-Id') -> {2, 192, 10415};
 avp_header('3GPP-GGSN-IP-Address') -> {7, 192, 10415};
-avp_header('3GPP-GGSN-MCC-MNC') -> {9, 128, 10415};
+avp_header('3GPP-GGSN-MCC-MNC') -> {9, 192, 10415};
 avp_header('3GPP-GPRS-Neg-QoS-Profile') ->
-    {5, 128, 10415};
-avp_header('3GPP-IMSI-MCC-MNC') -> {8, 128, 10415};
-avp_header('3GPP-MS-Time-Zone') -> {23, 128, 10415};
-avp_header('3GPP-NSAPI') -> {10, 128, 10415};
-avp_header('3GPP-PDP-Type') -> {3, 128, 10415};
-avp_header('3GPP-RAT-Type') -> {21, 128, 10415};
+    {5, 192, 10415};
+avp_header('3GPP-IMSI-MCC-MNC') -> {8, 192, 10415};
+avp_header('3GPP-MS-Time-Zone') -> {23, 192, 10415};
+avp_header('3GPP-NSAPI') -> {10, 192, 10415};
+avp_header('3GPP-PDP-Type') -> {3, 192, 10415};
+avp_header('3GPP-RAT-Type') -> {21, 192, 10415};
 avp_header('3GPP-SGSN-IP-Address') -> {6, 192, 10415};
-avp_header('3GPP-SGSN-MCC-MNC') -> {18, 128, 10415};
-avp_header('3GPP-Selection-Mode') -> {12, 128, 10415};
+avp_header('3GPP-SGSN-MCC-MNC') -> {18, 192, 10415};
+avp_header('3GPP-Selection-Mode') -> {12, 192, 10415};
 avp_header('3GPP-Session-Stop-Indicator') ->
     {11, 192, 10415};
 avp_header('3GPP-User-Location-Info') ->
-    {22, 128, 10415};
+    {22, 192, 10415};
 avp_header('AoC-Request-Type') -> {2055, 192, 10415};
 avp_header('CC-Correlation-Id') -> {411, 0, undefined};
 avp_header('CC-Input-Octets') -> {412, 64, undefined};
@@ -826,9 +826,9 @@ avp_header('CC-Time') -> {420, 64, undefined};
 avp_header('CC-Total-Octets') -> {421, 64, undefined};
 avp_header('CC-Unit-Type') -> {454, 64, undefined};
 avp_header('CG-Address') -> {846, 192, 10415};
-avp_header('Called-Station-Id') -> {30, 128, 10415};
+avp_header('Called-Station-Id') -> {30, 64, undefined};
 avp_header('Charging-Rule-Base-Name') ->
-    {1004, 128, 10415};
+    {1004, 192, 10415};
 avp_header('Check-Balance-Result') ->
     {422, 64, undefined};
 avp_header('Cost-Information') -> {423, 64, undefined};
@@ -853,14 +853,14 @@ avp_header('GGSN-Address') -> {847, 192, 10415};
 avp_header('Granted-Service-Unit') ->
     {431, 64, undefined};
 avp_header('Low-Balance-Indication') ->
-    {2020, 192, 10415};
+    {2020, 128, 10415};
 avp_header('Multiple-Services-Credit-Control') ->
     {456, 64, undefined};
 avp_header('Multiple-Services-Indicator') ->
     {455, 64, undefined};
 avp_header('Nokia-URI') -> {5112, 128, 94};
 avp_header('PDN-Connection-ID') -> {2050, 128, 10415};
-avp_header('PDP-Address') -> {1227, 192, 10415};
+avp_header('PDP-Address') -> {1227, 128, 10415};
 avp_header('PS-Information') -> {874, 192, 10415};
 avp_header('Rating-Group') -> {432, 64, undefined};
 avp_header('Redirect-Address-Type') ->
@@ -868,7 +868,7 @@ avp_header('Redirect-Address-Type') ->
 avp_header('Redirect-Server') -> {434, 64, undefined};
 avp_header('Redirect-Server-Address') ->
     {435, 64, undefined};
-avp_header('Remaining-Balance') -> {2021, 192, 10415};
+avp_header('Remaining-Balance') -> {2021, 128, 10415};
 avp_header('Reporting-Reason') -> {872, 192, 10415};
 avp_header('Requested-Action') -> {436, 64, undefined};
 avp_header('Requested-Service-Unit') ->
@@ -876,7 +876,7 @@ avp_header('Requested-Service-Unit') ->
 avp_header('Restriction-Filter-Rule') ->
     {438, 64, undefined};
 avp_header('Rulebase-ID') -> {5106, 128, 94};
-avp_header('SGSN-Address') -> {1228, 192, 10415};
+avp_header('SGSN-Address') -> {1228, 128, 10415};
 avp_header('Service-Context-Id') ->
     {461, 64, undefined};
 avp_header('Service-Identifier') ->
@@ -900,7 +900,7 @@ avp_header('Tariff-Change-Usage') ->
 avp_header('Tariff-Time-Change') ->
     {451, 64, undefined};
 avp_header('Time-of-First-Usage') -> {5103, 128, 94};
-avp_header('Time-of-Last-Usage') -> {5104, 192, 94};
+avp_header('Time-of-Last-Usage') -> {5104, 128, 94};
 avp_header('Trigger') -> {1264, 192, 10415};
 avp_header('Trigger-Type') -> {870, 192, 10415};
 avp_header('Unit-Value') -> {445, 64, undefined};
@@ -1734,25 +1734,25 @@ empty_value(Name) -> empty(Name).
 dict() ->
     [1,
      {avp_types,
-      [{"3GPP-CAMEL-Charging-Info", 24, "UTF8String", "V"},
+      [{"3GPP-CAMEL-Charging-Info", 24, "UTF8String", "MV"},
        {"3GPP-CG-Address", 4, "OctetString", "MV"},
        {"3GPP-Charging-Characteristics", 13, "OctetString",
-	"V"},
-       {"3GPP-Charging-Id", 2, "Unsigned32", "V"},
+	"MV"},
+       {"3GPP-Charging-Id", 2, "Unsigned32", "MV"},
        {"3GPP-GGSN-IP-Address", 7, "Unsigned32", "MV"},
-       {"3GPP-GGSN-MCC-MNC", 9, "UTF8String", "V"},
-       {"3GPP-GPRS-Neg-QoS-Profile", 5, "UTF8String", "V"},
-       {"3GPP-IMSI-MCC-MNC", 8, "UTF8String", "V"},
-       {"3GPP-MS-Time-Zone", 23, "OctetString", "V"},
-       {"3GPP-NSAPI", 10, "UTF8String", "V"},
-       {"3GPP-PDP-Type", 3, "Unsigned32", "V"},
-       {"3GPP-RAT-Type", 21, "OctetString", "V"},
+       {"3GPP-GGSN-MCC-MNC", 9, "UTF8String", "MV"},
+       {"3GPP-GPRS-Neg-QoS-Profile", 5, "UTF8String", "MV"},
+       {"3GPP-IMSI-MCC-MNC", 8, "UTF8String", "MV"},
+       {"3GPP-MS-Time-Zone", 23, "OctetString", "MV"},
+       {"3GPP-NSAPI", 10, "UTF8String", "MV"},
+       {"3GPP-PDP-Type", 3, "Unsigned32", "MV"},
+       {"3GPP-RAT-Type", 21, "OctetString", "MV"},
        {"3GPP-SGSN-IP-Address", 6, "Unsigned32", "MV"},
-       {"3GPP-SGSN-MCC-MNC", 18, "UTF8String", "V"},
-       {"3GPP-Selection-Mode", 12, "UTF8String", "V"},
+       {"3GPP-SGSN-MCC-MNC", 18, "UTF8String", "MV"},
+       {"3GPP-Selection-Mode", 12, "UTF8String", "MV"},
        {"3GPP-Session-Stop-Indicator", 11, "OctetString",
 	"MV"},
-       {"3GPP-User-Location-Info", 22, "UTF8String", "V"},
+       {"3GPP-User-Location-Info", 22, "UTF8String", "MV"},
        {"AoC-Request-Type", 2055, "Enumerated", "MV"},
        {"CC-Correlation-Id", 411, "OctetString", []},
        {"CC-Input-Octets", 412, "Unsigned64", "M"},
@@ -1766,8 +1766,8 @@ dict() ->
        {"CC-Total-Octets", 421, "Unsigned64", "M"},
        {"CC-Unit-Type", 454, "Enumerated", "M"},
        {"CG-Address", 846, "Address", "MV"},
-       {"Called-Station-Id", 30, "UTF8String", "V"},
-       {"Charging-Rule-Base-Name", 1004, "UTF8String", "V"},
+       {"Called-Station-Id", 30, "UTF8String", "M"},
+       {"Charging-Rule-Base-Name", 1004, "UTF8String", "MV"},
        {"Check-Balance-Result", 422, "Enumerated", "M"},
        {"Cost-Information", 423, "Grouped", "M"},
        {"Cost-Unit", 424, "UTF8String", "M"},
@@ -1786,25 +1786,25 @@ dict() ->
        {"G-S-U-Pool-Reference", 457, "Grouped", "M"},
        {"GGSN-Address", 847, "Address", "MV"},
        {"Granted-Service-Unit", 431, "Grouped", "M"},
-       {"Low-Balance-Indication", 2020, "Enumerated", "MV"},
+       {"Low-Balance-Indication", 2020, "Enumerated", "V"},
        {"Multiple-Services-Credit-Control", 456, "Grouped",
 	"M"},
        {"Multiple-Services-Indicator", 455, "Enumerated", "M"},
        {"Nokia-URI", 5112, "OctetString", "V"},
        {"PDN-Connection-ID", 2050, "Unsigned32", "V"},
-       {"PDP-Address", 1227, "Address", "MV"},
+       {"PDP-Address", 1227, "Address", "V"},
        {"PS-Information", 874, "Grouped", "MV"},
        {"Rating-Group", 432, "Unsigned32", "M"},
        {"Redirect-Address-Type", 433, "Enumerated", "M"},
        {"Redirect-Server", 434, "Grouped", "M"},
        {"Redirect-Server-Address", 435, "UTF8String", "M"},
-       {"Remaining-Balance", 2021, "Grouped", "MV"},
+       {"Remaining-Balance", 2021, "Grouped", "V"},
        {"Reporting-Reason", 872, "Enumerated", "MV"},
        {"Requested-Action", 436, "Enumerated", "M"},
        {"Requested-Service-Unit", 437, "Grouped", "M"},
        {"Restriction-Filter-Rule", 438, "IPFilterRule", "M"},
        {"Rulebase-ID", 5106, "UTF8String", "V"},
-       {"SGSN-Address", 1228, "Address", "MV"},
+       {"SGSN-Address", 1228, "Address", "V"},
        {"Service-Context-Id", 461, "UTF8String", "M"},
        {"Service-Identifier", 439, "Unsigned32", "M"},
        {"Service-Information", 873, "Grouped", "MV"},
@@ -1818,7 +1818,7 @@ dict() ->
        {"Tariff-Change-Usage", 452, "Enumerated", "M"},
        {"Tariff-Time-Change", 451, "Time", "M"},
        {"Time-of-First-Usage", 5103, "Time", "V"},
-       {"Time-of-Last-Usage", 5104, "Time", "MV"},
+       {"Time-of-Last-Usage", 5104, "Time", "V"},
        {"Trigger", 1264, "Grouped", "MV"},
        {"Trigger-Type", 870, "Enumerated", "MV"},
        {"Unit-Value", 445, "Grouped", "M"},
@@ -1831,8 +1831,8 @@ dict() ->
      {avp_vendor_id,
       [{94,
 	["Time-of-First-Usage", "Time-of-Last-Usage",
-	 "Nokia-URI", "Rulebase-ID",
-	 "Session-Start-Indicator"]}]},
+	 "Session-Start-Indicator", "Rulebase-ID",
+	 "Nokia-URI"]}]},
      {codecs, []}, {command_codes, [{272, "CCR", "CCA"}]},
      {custom_types, []},
      {define,

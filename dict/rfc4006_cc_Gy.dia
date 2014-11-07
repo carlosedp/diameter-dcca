@@ -25,7 +25,16 @@
 
 @inherits common
 @inherits rfc4005_nas  Filter-Id
+
 @vendor 10415 3GPP
+
+@avp_vendor_id 94
+
+   Time-of-First-Usage
+   Time-of-Last-Usage
+   Session-Start-Indicator
+   Rulebase-ID
+   Nokia-URI
 
 ;; ===========================================================================
 
@@ -61,7 +70,6 @@
    Redirect-Address-Type             433    Enumerated    M
    Redirect-Server                   434    Grouped       M
    Redirect-Server-Address           435    UTF8String    M
-   AoC-Request-Type                 2055    Enumerated    MV
    Requested-Action                  436    Enumerated    M
    Requested-Service-Unit            437    Grouped       M
    Restriction-Filter-Rule           438    IPFilterRule  M
@@ -82,53 +90,52 @@
    User-Equipment-Info-Value         460    OctetString   -
    Value-Digits                      447    Integer64     M
    Validity-Time                     448    Unsigned32    M
+   Framed-IP-Address                   8    OctetString   M
+   Framed-IPv6-Prefix                 97    OctetString   M
+   Called-Station-Id                  30    UTF8String    M
+;;
+;; 3GPP AVPs
+;;
    Reporting-Reason                  872    Enumerated    MV
    Trigger-Type                      870    Enumerated    MV
    Trigger                          1264    Grouped       MV
-   Framed-IP-Address                   8    OctetString   M
-   Framed-IPv6-Prefix                 97    OctetString   M
+   AoC-Request-Type                 2055    Enumerated    MV
    Service-Information               873    Grouped       MV
    PS-Information                    874    Grouped       MV
-   3GPP-Charging-Id                    2    Unsigned32    V
-   3GPP-PDP-Type                       3    Unsigned32    V
+   3GPP-Charging-Id                    2    Unsigned32    MV
+   3GPP-PDP-Type                       3    Unsigned32    MV
    3GPP-CG-Address                     4    OctetString   MV
-   3GPP-GPRS-Neg-QoS-Profile           5    UTF8String    V
+   3GPP-GPRS-Neg-QoS-Profile           5    UTF8String    MV
    3GPP-SGSN-IP-Address                6    Unsigned32    MV
    3GPP-GGSN-IP-Address                7    Unsigned32    MV
-   3GPP-IMSI-MCC-MNC                   8    UTF8String    V
-   3GPP-GGSN-MCC-MNC                   9    UTF8String    V
-   3GPP-NSAPI                         10    UTF8String    V
+   3GPP-IMSI-MCC-MNC                   8    UTF8String    MV
+   3GPP-GGSN-MCC-MNC                   9    UTF8String    MV
+   3GPP-NSAPI                         10    UTF8String    MV
    3GPP-Session-Stop-Indicator        11    OctetString   MV
-   3GPP-Selection-Mode                12    UTF8String    V
-   3GPP-Charging-Characteristics      13    OctetString   V
-   3GPP-SGSN-MCC-MNC                  18    UTF8String    V
-   3GPP-RAT-Type                      21    OctetString   V
-   3GPP-User-Location-Info            22    UTF8String    V
-   3GPP-MS-Time-Zone                  23    OctetString   V
-   3GPP-CAMEL-Charging-Info           24    UTF8String    V
-   Charging-Rule-Base-Name          1004    UTF8String    V
+   3GPP-Selection-Mode                12    UTF8String    MV
+   3GPP-Charging-Characteristics      13    OctetString   MV
+   3GPP-SGSN-MCC-MNC                  18    UTF8String    MV
+   3GPP-RAT-Type                      21    OctetString   MV
+   3GPP-User-Location-Info            22    UTF8String    MV
+   3GPP-MS-Time-Zone                  23    OctetString   MV
+   3GPP-CAMEL-Charging-Info           24    UTF8String    MV
+   Charging-Rule-Base-Name          1004    UTF8String    MV
    PDN-Connection-ID                2050    Unsigned32    V
-   Called-Station-Id                  30    UTF8String    V
-   Low-Balance-Indication           2020    Enumerated    MV
-   PDP-Address                      1227    Address       MV
-   SGSN-Address                     1228    Address       MV
+   Low-Balance-Indication           2020    Enumerated    V
+   PDP-Address                      1227    Address       V
+   SGSN-Address                     1228    Address       V
    GGSN-Address                      847    Address       MV
    CG-Address                        846    Address       MV
-   Remaining-Balance                2021    Grouped       MV
+;;
+;; Nokia AVPs
+;;
+   Remaining-Balance                2021    Grouped       V
    Time-of-First-Usage              5103    Time          V
-   Time-of-Last-Usage               5104    Time          MV
+   Time-of-Last-Usage               5104    Time          V
    Session-Start-Indicator          5105    OctetString   V
    Rulebase-ID                      5106    UTF8String    V
    Nokia-URI                        5112    OctetString   V
 
-
-@avp_vendor_id 94
-
-   Time-of-First-Usage
-   Time-of-Last-Usage
-   Nokia-URI
-   Rulebase-ID
-   Session-Start-Indicator
 
 ;; ===========================================================================
 

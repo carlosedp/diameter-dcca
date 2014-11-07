@@ -123,19 +123,13 @@ create_session(gprs, {initial, MSISDN, SId, ReqN}) ->
                                 'Subscription-Id-Type' = ?'MSISDN',
                                 'Subscription-Id-Data' = MSISDN
                             }],
-        'Multiple-Services-Indicator' = [1],
-        'Service-Information' = [#'rfc4006_cc_Gy_Service-Information' {
-            'PS-Information' = #'rfc4006_cc_Gy_PS-Information' {
-                'Called-Station-Id' = 'apn.com'
-                }
-            }
-        ]
+        'Multiple-Services-Indicator' = [1]
     },
     diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []).
 
 %% Rate service
 rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
-	ReqN2 = ReqN+1,
+    ReqN2 = ReqN+1,
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
             'Session-Id' = SId,
@@ -148,39 +142,39 @@ rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consumed
                                     'Subscription-Id-Type' = ?'MSISDN',
                                     'Subscription-Id-Data' = MSISDN
                                 }],
+            'Called-Station-Id' = ["apn.com"],
             'Multiple-Services-Indicator' = [1]
-            % 'Called-Station-Id' = 'apn.com'
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
-	case Ret of
-		{ok, CCA} ->
-    		io:format("CCR-UPDATE Success...~n"),
-			%% Extract GSU from CCA
-			#rfc4006_cc_Gy_CCA{
-			      'Multiple-Services-Credit-Control' = MSCC
-			    } = CCA,
-			[#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
-			    	'Granted-Service-Unit' = GSU
-			    }|_] = MSCC,
-			[#'rfc4006_cc_Gy_Granted-Service-Unit' {
-			             'CC-Total-Octets' = [UsedUnits]
-			}] = GSU,
-			%% Subtract GSU from total
-			NewRemainingBytes = RemainingBytes-UsedUnits,
-			if
-				(NewRemainingBytes > 0) ->
-					rate_service(gprs, {update, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, UsedUnits, NewRemainingBytes}});
-				(NewRemainingBytes =< 0) ->
-					io:format("Last request: ~w | ~w | ~w ~n", [UsedUnits, RemainingBytes, NewRemainingBytes]),
-					rate_service(gprs, {terminate, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, RemainingBytes, 0}})
-			end;
-		{error, Err} ->
-    		io:format("Error: ~w~n", [Err])
+    case Ret of
+        {ok, CCA} ->
+            io:format("CCR-UPDATE Success...~n"),
+            %% Extract GSU from CCA
+            #rfc4006_cc_Gy_CCA{
+                  'Multiple-Services-Credit-Control' = MSCC
+                } = CCA,
+            [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+                    'Granted-Service-Unit' = GSU
+                }|_] = MSCC,
+            [#'rfc4006_cc_Gy_Granted-Service-Unit' {
+                         'CC-Total-Octets' = [UsedUnits]
+            }] = GSU,
+            %% Subtract GSU from total
+            NewRemainingBytes = RemainingBytes-UsedUnits,
+            if
+                (NewRemainingBytes > 0) ->
+                    rate_service(gprs, {update, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, UsedUnits, NewRemainingBytes}});
+                (NewRemainingBytes =< 0) ->
+                    io:format("Last request: ~w | ~w | ~w ~n", [UsedUnits, RemainingBytes, NewRemainingBytes]),
+                    rate_service(gprs, {terminate, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, RemainingBytes, 0}})
+            end;
+        {error, Err} ->
+            io:format("Error: ~w~n", [Err])
     end,
     ok;
 
 rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
-	ReqN2 = ReqN+1,
+    ReqN2 = ReqN+1,
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
             'Session-Id' = SId,
@@ -193,61 +187,61 @@ rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consu
                                     'Subscription-Id-Type' = ?'MSISDN',
                                     'Subscription-Id-Data' = MSISDN
                                 }]
-            % 'Called-Station-Id' = 'apn.com'
+            'Called-Station-Id' = ["apn.com"],
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
-	case Ret of
-		{ok, _} ->
-    		io:format("CCR-TERMINATE Success...~n");
-		{error, Err} ->
-    		io:format("Error: ~w~n", [Err])
+    case Ret of
+        {ok, _} ->
+            io:format("CCR-TERMINATE Success...~n");
+        {error, Err} ->
+            io:format("Error: ~w~n", [Err])
     end,
     ok.
 
 
 generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes) ->
-	if
-		((ConsumedBytes == 0 ) and (RemainingBytes > 0)) ->
-			%% First request. Must send RSU and no USU.
-			MSCC = #rfc4006_cc_Gy_CCR {
-	        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
-	            'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
-	                 'CC-Total-Octets' = []
-	             }],
-	             'Service-Identifier' = [ServiceID],
-	             'Rating-Group' = [RatingGroup]
-	        }]
-	        };
-		((ConsumedBytes /= 0 ) and (RemainingBytes > 0)) ->
-			%% Update request. Must send RSU and USU.
-			MSCC = #rfc4006_cc_Gy_CCR {
-	        'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
-	            'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
-	                 'CC-Total-Octets' = []
-	             }],
-	            'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
-	               'CC-Total-Octets' = [ConsumedBytes]
-	            }],
-	             'Service-Identifier' = [ServiceID],
-	             'Rating-Group' = [RatingGroup],
-	             'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_QUOTA_EXAUSTED']
-	        }]
-	        };
-		((ConsumedBytes /= 0 ) and (RemainingBytes =< 0) ) ->
-			%% Last update request. Must send USU to report last used bytes. No RSU.
-			MSCC = #rfc4006_cc_Gy_CCR {
-	        	'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
-	            	'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
-	               		'CC-Total-Octets' = [ConsumedBytes]
-	            	}],
-	             	'Service-Identifier' = [ServiceID],
-	             	'Rating-Group' = [RatingGroup],
-	             	'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_FINAL']
-	        	}]
-	        };
-		true ->
-			MSCC = err
-	end,
+    if
+        ((ConsumedBytes == 0 ) and (RemainingBytes > 0)) ->
+            %% First request. Must send RSU and no USU.
+            MSCC = #rfc4006_cc_Gy_CCR {
+            'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+                'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
+                     'CC-Total-Octets' = []
+                 }],
+                 'Service-Identifier' = [ServiceID],
+                 'Rating-Group' = [RatingGroup]
+            }]
+            };
+        ((ConsumedBytes /= 0 ) and (RemainingBytes > 0)) ->
+            %% Update request. Must send RSU and USU.
+            MSCC = #rfc4006_cc_Gy_CCR {
+            'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+                'Requested-Service-Unit' = [#'rfc4006_cc_Gy_Requested-Service-Unit' {
+                     'CC-Total-Octets' = []
+                 }],
+                'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
+                   'CC-Total-Octets' = [ConsumedBytes]
+                }],
+                 'Service-Identifier' = [ServiceID],
+                 'Rating-Group' = [RatingGroup],
+                 'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_QUOTA_EXAUSTED']
+            }]
+            };
+        ((ConsumedBytes /= 0 ) and (RemainingBytes =< 0) ) ->
+            %% Last update request. Must send USU to report last used bytes. No RSU.
+            MSCC = #rfc4006_cc_Gy_CCR {
+                'Multiple-Services-Credit-Control' = [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
+                    'Used-Service-Unit' = [#'rfc4006_cc_Gy_Used-Service-Unit' {
+                        'CC-Total-Octets' = [ConsumedBytes]
+                    }],
+                    'Service-Identifier' = [ServiceID],
+                    'Rating-Group' = [RatingGroup],
+                    'Reporting-Reason' = [?'RFC4006_CC_GY_REPORTING-REASON_FINAL']
+                }]
+            };
+        true ->
+            MSCC = err
+    end,
     MSCC.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
