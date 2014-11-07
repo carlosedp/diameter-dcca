@@ -186,8 +186,8 @@ rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consu
             'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
                                     'Subscription-Id-Type' = ?'MSISDN',
                                     'Subscription-Id-Data' = MSISDN
-                                }]
-            'Called-Station-Id' = ["apn.com"],
+                                }],
+            'Called-Station-Id' = ["apn.com"]
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
     case Ret of
