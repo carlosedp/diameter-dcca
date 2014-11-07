@@ -131,6 +131,7 @@
            [ AoC-Request-Type ]
            [ Multiple-Services-Indicator ]
          * [ Multiple-Services-Credit-Control ]
+           [ Called-Station-Id ]
            [ CC-Correlation-Id ]
            [ User-Equipment-Info ]
          * [ Proxy-Info ]

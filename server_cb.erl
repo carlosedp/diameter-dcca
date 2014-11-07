@@ -62,21 +62,15 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
        'Event-Timestamp' = EventTimestamp,
        'Subscription-Id' = SUBSCRIPTION,
        'Multiple-Services-Credit-Control' = MSCC,
-       'Service-Information' = [ServiceInformation]
-
-       % #'rfc4006_cc_Gy_Service-Information'{
-       %     #'rfc4006_cc_Gy_PS-Information'{ 'Called-Station-Id' = APN }
-       % }
+       'Called-Station-Id' = APN
+       % 'Service-Information' = [ServiceInformation]
     } = Req,
-    [PSI] = ServiceInformation#'rfc4006_cc_Gy_Service-Information'.'PS-Information',
-    APN = PSI#'rfc4006_cc_Gy_PS-Information'.'Called-Station-Id',
     MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
     IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
 
     io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
     io:format("CCR OK: ~p~n", [Req]),
     io:format("MSCC ~p~n", [MSCC]),
-    % APN = 'apn.com',
     MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
     {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
@@ -92,12 +86,14 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
     #rfc4006_cc_Gy_CCR{'Session-Id' = Id,
                     'CC-Request-Type' = RT,
                     'CC-Request-Number'= RN,
-                    'Multiple-Services-Credit-Control' = MSCC}
+                    'Multiple-Services-Credit-Control' = MSCC,
+                    'Called-Station-Id' = APN
+                    }
         = Req,
     io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
     io:format("CCR: ~p~n", [Req]),
     io:format("CCR Error: ~p~n", [Err]),
-    io:format("MSCC ~p~n", [MSCC]),
+    io:format("APN/MSCC ~p, ~p~n", [APN, MSCC]),
     {reply, answer(err, RT, RN, Id, OH, OR, [])};
 
 %% Should really reply to other base messages that we don't support
@@ -200,7 +196,7 @@ mscc_answer([MSCC|T]) ->
     % io:format("mscc_answer:~n"),
     % io:format("MSCC: ~p~n",[MSCC]),
     % io:format("T: ~w~n",[T]),
-    {ServiceID, RatingGroup, GrantedUnits, ResultCode} = MSCC,
+    {ServiceID, RatingGroup, GrantedUnits, _ResultCode} = MSCC,
     [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
       'Granted-Service-Unit' = [#'rfc4006_cc_Gy_Granted-Service-Unit' {
         'CC-Total-Octets' = [GrantedUnits],

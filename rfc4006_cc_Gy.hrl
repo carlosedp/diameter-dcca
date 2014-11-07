@@ -34,9 +34,10 @@
 	 'AoC-Request-Type' = [],
 	 'Multiple-Services-Indicator' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'CC-Correlation-Id' = [], 'User-Equipment-Info' = [],
-	 'Proxy-Info' = [], 'Route-Record' = [],
-	 'Service-Information' = [], 'AVP' = []}).
+	 'Called-Station-Id' = [], 'CC-Correlation-Id' = [],
+	 'User-Equipment-Info' = [], 'Proxy-Info' = [],
+	 'Route-Record' = [], 'Service-Information' = [],
+	 'AVP' = []}).
 
 -record(rfc4006_cc_Gy_CCA,
 	{'Session-Id', 'Result-Code', 'Origin-Host',

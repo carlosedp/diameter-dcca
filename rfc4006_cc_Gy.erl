@@ -54,9 +54,10 @@
 	 'AoC-Request-Type' = [],
 	 'Multiple-Services-Indicator' = [],
 	 'Multiple-Services-Credit-Control' = [],
-	 'CC-Correlation-Id' = [], 'User-Equipment-Info' = [],
-	 'Proxy-Info' = [], 'Route-Record' = [],
-	 'Service-Information' = [], 'AVP' = []}).
+	 'Called-Station-Id' = [], 'CC-Correlation-Id' = [],
+	 'User-Equipment-Info' = [], 'Proxy-Info' = [],
+	 'Route-Record' = [], 'Service-Information' = [],
+	 'AVP' = []}).
 
 -record(rfc4006_cc_Gy_CCA,
 	{'Session-Id', 'Result-Code', 'Origin-Host',
@@ -485,6 +486,7 @@ avp_arity('CCR', 'Multiple-Services-Indicator') ->
     {0, 1};
 avp_arity('CCR', 'Multiple-Services-Credit-Control') ->
     {0, '*'};
+avp_arity('CCR', 'Called-Station-Id') -> {0, 1};
 avp_arity('CCR', 'CC-Correlation-Id') -> {0, 1};
 avp_arity('CCR', 'User-Equipment-Info') -> {0, 1};
 avp_arity('CCR', 'Proxy-Info') -> {0, '*'};
@@ -1891,9 +1893,10 @@ dict() ->
 	 ["Requested-Action"], ["AoC-Request-Type"],
 	 ["Multiple-Services-Indicator"],
 	 {'*', ["Multiple-Services-Credit-Control"]},
-	 ["CC-Correlation-Id"], ["User-Equipment-Info"],
-	 {'*', ["Proxy-Info"]}, {'*', ["Route-Record"]},
-	 ["Service-Information"], {'*', ["AVP"]}]},
+	 ["Called-Station-Id"], ["CC-Correlation-Id"],
+	 ["User-Equipment-Info"], {'*', ["Proxy-Info"]},
+	 {'*', ["Route-Record"]}, ["Service-Information"],
+	 {'*', ["AVP"]}]},
        {"CCA", 272, ['PXY'], [],
 	[{{"Session-Id"}}, {"Result-Code"}, {"Origin-Host"},
 	 {"Origin-Realm"}, {"Auth-Application-Id"},
