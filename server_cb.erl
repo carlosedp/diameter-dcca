@@ -62,21 +62,21 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
        'Event-Timestamp' = EventTimestamp,
        'Subscription-Id' = SUBSCRIPTION,
        'Multiple-Services-Credit-Control' = MSCC,
+       'Called-Station-Id' = APN
        'Service-Information' = [ServiceInformation]
 
        % #'rfc4006_cc_Gy_Service-Information'{
        %     #'rfc4006_cc_Gy_PS-Information'{ 'Called-Station-Id' = APN }
        % }
     } = Req,
-    [PSI] = ServiceInformation#'rfc4006_cc_Gy_Service-Information'.'PS-Information',
-    APN = PSI#'rfc4006_cc_Gy_PS-Information'.'Called-Station-Id',
+    % [PSI] = ServiceInformation#'rfc4006_cc_Gy_Service-Information'.'PS-Information',
+    % APN = PSI#'rfc4006_cc_Gy_PS-Information'.'Called-Station-Id',
     MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
     IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
 
     io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
     io:format("CCR OK: ~p~n", [Req]),
     io:format("MSCC ~p~n", [MSCC]),
-    % APN = 'apn.com',
     MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
     {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
@@ -219,8 +219,10 @@ mscc_answer([MSCC|T]) ->
 mscc_answer([]) ->
 [].
 
-
 %% Internal Functions
+
+checkAPNExists(APN) ->
+    {reply, answer(err, RT, RN, Id, OH, OR, [])}.
 
 % Check list. If null, return zero, else return value.
 % checkNullList([X]) -> X;
