@@ -1,4 +1,6 @@
 **/*.beam
+seagull/stat/*.csv
+seagull/*.pcap
 dict/depend.mk
 dict/*.erl
 dict/*.hrl
