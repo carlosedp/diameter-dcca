@@ -116,14 +116,14 @@
    3GPP-Charging-Characteristics      13    OctetString   MV
    3GPP-SGSN-MCC-MNC                  18    UTF8String    MV
    3GPP-RAT-Type                      21    OctetString   MV
-   3GPP-User-Location-Info            22    UTF8String    MV
+   3GPP-User-Location-Info            22    OctetString   MV
    3GPP-MS-Time-Zone                  23    OctetString   MV
    3GPP-CAMEL-Charging-Info           24    UTF8String    MV
    Charging-Rule-Base-Name          1004    UTF8String    MV
-   PDN-Connection-ID                2050    Unsigned32    V
-   Low-Balance-Indication           2020    Enumerated    V
-   PDP-Address                      1227    Address       V
-   SGSN-Address                     1228    Address       V
+   PDN-Connection-ID                2050    Unsigned32    MV
+   Low-Balance-Indication           2020    Enumerated    MV
+   PDP-Address                      1227    Address       MV
+   SGSN-Address                     1228    Address       MV
    GGSN-Address                      847    Address       MV
    CG-Address                        846    Address       MV
 ;;

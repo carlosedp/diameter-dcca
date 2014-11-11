@@ -284,7 +284,7 @@ avp_name(12, 10415) ->
 avp_name(11, 10415) ->
     {'3GPP-Session-Stop-Indicator', 'OctetString'};
 avp_name(22, 10415) ->
-    {'3GPP-User-Location-Info', 'UTF8String'};
+    {'3GPP-User-Location-Info', 'OctetString'};
 avp_name(2055, 10415) ->
     {'AoC-Request-Type', 'Enumerated'};
 avp_name(411, undefined) ->
@@ -853,14 +853,14 @@ avp_header('GGSN-Address') -> {847, 192, 10415};
 avp_header('Granted-Service-Unit') ->
     {431, 64, undefined};
 avp_header('Low-Balance-Indication') ->
-    {2020, 128, 10415};
+    {2020, 192, 10415};
 avp_header('Multiple-Services-Credit-Control') ->
     {456, 64, undefined};
 avp_header('Multiple-Services-Indicator') ->
     {455, 64, undefined};
 avp_header('Nokia-URI') -> {5112, 128, 94};
-avp_header('PDN-Connection-ID') -> {2050, 128, 10415};
-avp_header('PDP-Address') -> {1227, 128, 10415};
+avp_header('PDN-Connection-ID') -> {2050, 192, 10415};
+avp_header('PDP-Address') -> {1227, 192, 10415};
 avp_header('PS-Information') -> {874, 192, 10415};
 avp_header('Rating-Group') -> {432, 64, undefined};
 avp_header('Redirect-Address-Type') ->
@@ -876,7 +876,7 @@ avp_header('Requested-Service-Unit') ->
 avp_header('Restriction-Filter-Rule') ->
     {438, 64, undefined};
 avp_header('Rulebase-ID') -> {5106, 128, 94};
-avp_header('SGSN-Address') -> {1228, 128, 10415};
+avp_header('SGSN-Address') -> {1228, 192, 10415};
 avp_header('Service-Context-Id') ->
     {461, 64, undefined};
 avp_header('Service-Identifier') ->
@@ -1048,7 +1048,7 @@ avp(T, Data, '3GPP-Selection-Mode') ->
 avp(T, Data, '3GPP-Session-Stop-Indicator') ->
     diameter_types:'OctetString'(T, Data);
 avp(T, Data, '3GPP-User-Location-Info') ->
-    diameter_types:'UTF8String'(T, Data);
+    diameter_types:'OctetString'(T, Data);
 avp(T, Data, 'AoC-Request-Type') ->
     enumerated_avp(T, 'AoC-Request-Type', Data);
 avp(T, Data, 'CC-Correlation-Id') ->
@@ -1752,7 +1752,7 @@ dict() ->
        {"3GPP-Selection-Mode", 12, "UTF8String", "MV"},
        {"3GPP-Session-Stop-Indicator", 11, "OctetString",
 	"MV"},
-       {"3GPP-User-Location-Info", 22, "UTF8String", "MV"},
+       {"3GPP-User-Location-Info", 22, "OctetString", "MV"},
        {"AoC-Request-Type", 2055, "Enumerated", "MV"},
        {"CC-Correlation-Id", 411, "OctetString", []},
        {"CC-Input-Octets", 412, "Unsigned64", "M"},
@@ -1786,13 +1786,13 @@ dict() ->
        {"G-S-U-Pool-Reference", 457, "Grouped", "M"},
        {"GGSN-Address", 847, "Address", "MV"},
        {"Granted-Service-Unit", 431, "Grouped", "M"},
-       {"Low-Balance-Indication", 2020, "Enumerated", "V"},
+       {"Low-Balance-Indication", 2020, "Enumerated", "MV"},
        {"Multiple-Services-Credit-Control", 456, "Grouped",
 	"M"},
        {"Multiple-Services-Indicator", 455, "Enumerated", "M"},
        {"Nokia-URI", 5112, "OctetString", "V"},
-       {"PDN-Connection-ID", 2050, "Unsigned32", "V"},
-       {"PDP-Address", 1227, "Address", "V"},
+       {"PDN-Connection-ID", 2050, "Unsigned32", "MV"},
+       {"PDP-Address", 1227, "Address", "MV"},
        {"PS-Information", 874, "Grouped", "MV"},
        {"Rating-Group", 432, "Unsigned32", "M"},
        {"Redirect-Address-Type", 433, "Enumerated", "M"},
@@ -1804,7 +1804,7 @@ dict() ->
        {"Requested-Service-Unit", 437, "Grouped", "M"},
        {"Restriction-Filter-Rule", 438, "IPFilterRule", "M"},
        {"Rulebase-ID", 5106, "UTF8String", "V"},
-       {"SGSN-Address", 1228, "Address", "V"},
+       {"SGSN-Address", 1228, "Address", "MV"},
        {"Service-Context-Id", 461, "UTF8String", "M"},
        {"Service-Identifier", 439, "Unsigned32", "M"},
        {"Service-Information", 873, "Grouped", "MV"},
