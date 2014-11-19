@@ -18,7 +18,7 @@
 #
 
 APPS  = client server
-SUPPORT = common_stats ocs_intm
+SUPPORT = common_stats ocs
 CALLBACKS = $(APPS:%=%_cb)
 
 MODULES   = $(APPS) $(APPS:%=%_cb) $(SUPPORT)

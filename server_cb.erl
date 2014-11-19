@@ -143,23 +143,34 @@ process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimesta
     case {RSU, USU} of
         % Have RSU. No USU (First interrogation)
         {[_], []} ->
-            io:format("Have RSU. No USU (First interrogation)~n"),
-            {ResultCode, GrantedUnits} = ocs_intm:generate_req(initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup});
+            error_logger:info_msg("Have RSU. No USU (First interrogation)"),
+            ocs ! {self(), {initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup}}},
+            receive
+                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
+            end;
+            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup});
         % Have RSU. Have USU (Next interrogation)
         {[_], [_]} ->
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            io:format("USU: ~w~n", [UsedUnits]),
-            {ResultCode, GrantedUnits} = ocs_intm:generate_req(update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup});
+            error_logger:info_msg("Have RSU. Have USU (Next interrogation)"),
+            ocs ! {self(), {update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup}}},
+            receive
+                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
+            end;
+            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup});
         % No RSU. Have USU (Last interrogation)
         {[], [_]} ->
             error_logger:info_msg("No RSU. Have USU (Last interrogation)"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            io:format("USU: ~w~n",[UsedUnits]),
-            {ResultCode, GrantedUnits} = ocs_intm:generate_req(terminate, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup})
+            ocs ! {self(), {terminate, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup}}},
+            receive
+                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
+            end
+            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(terminate, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup})
         end,
     [{ServiceID, RatingGroup, GrantedUnits, ResultCode}|process_mscc(RT, T, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp})];
 

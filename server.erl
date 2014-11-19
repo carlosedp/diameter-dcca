@@ -58,6 +58,8 @@
 start(Name)
     when is_atom(Name) ->
         diameter:start(),
+        OCS = ocs:start(ocs_intm),
+        register(ocs, OCS),
         common_stats:init(?DIA_STATS_TAB, ?DIA_STATS_COUNTERS),
         diameter:start_service(Name, ?SERVICE(Name)),
         listen({address, ?DIAMETER_PROTO, ?DIAMETER_IP, ?DIAMETER_PORT}).
