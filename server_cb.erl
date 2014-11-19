@@ -24,11 +24,11 @@
 -define(UNEXPECTED, erlang:error({unexpected, ?MODULE, ?LINE})).
 
 peer_up(_SvcName, {PeerRef, _}, State) ->
-    io:format("Peer up: ~p~n", [PeerRef]),
+    error_logger:info_msg("Peer up: ~p~n", [PeerRef]),
     State.
 
 peer_down(_SvcName, {PeerRef, _}, State) ->
-    io:format("Peer down: ~p~n", [PeerRef]),
+    error_logger:info_msg("Peer down: ~p~n", [PeerRef]),
     State.
 
 pick_peer(_, _, _SvcName, _State) ->
@@ -44,7 +44,7 @@ handle_answer(_Packet, _Request, _SvcName, _Peer) ->
     ?UNEXPECTED.
 
 handle_error(_Reason, _Request, _SvcName, _Peer) ->
-    io:format("Request error: ~p~n", [_Reason]),
+    error_logger:error_msg("Request error: ~p~n", [_Reason]),
     ?UNEXPECTED.
 
 %% A request whose decode was successful ...
@@ -67,10 +67,15 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     } = Req,
     MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
     IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
+    %io:format("Record:~n~p~n", [lists:zip(record_info(fields, rfc4006_cc_Gy_CCR), tl(tuple_to_list(Req)))]),
 
-    io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
-    io:format("CCR OK: ~p~n", [Req]),
-    io:format("MSCC ~p~n", [MSCC]),
+    error_logger:info_msg(
+        "
+        ------------------------------> Req. Number ~p <------------------------------
+        CCR OK: ~p
+        MSCC: ~p
+        ------------------------------------------------------------------------------
+        ", [RN, Req, MSCC]),
     MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
     {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
 
@@ -90,16 +95,21 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
                     'Called-Station-Id' = APN
                     }
         = Req,
-    io:format("--------------------> Req. Number ~p <--------------------~n", [RN]),
-    io:format("CCR: ~p~n", [Req]),
-    io:format("CCR Error: ~p~n", [Err]),
-    io:format("APN/MSCC ~p, ~p~n", [APN, MSCC]),
+    error_logger:error_msg(
+        "
+        ------------------------------> Req. Number ~p <------------------------------
+        CCR: ~p
+        Error: ~p
+        APN: ~p
+        MSCC: ~p
+        ------------------------------------------------------------------------------
+        ", [RN, Req, Err, APN, MSCC]),
     {reply, answer(err, RT, RN, Id, OH, OR, [])};
 
 %% Should really reply to other base messages that we don't support
 %% but simply discard them instead.
 handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
-    io:format("Unsupported message.~n"),
+    error_logger:error_msg("Unsupported message.~n"),
     discard.
 
 getSubscriptionId(TYPE, [SUBS|T]) ->
@@ -137,7 +147,6 @@ process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimesta
             {ResultCode, GrantedUnits} = ocs_intm:generate_req(initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup});
         % Have RSU. Have USU (Next interrogation)
         {[_], [_]} ->
-            io:format("Have RSU. Have USU (Next interrogation)~n"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
@@ -145,7 +154,7 @@ process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimesta
             {ResultCode, GrantedUnits} = ocs_intm:generate_req(update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup});
         % No RSU. Have USU (Last interrogation)
         {[], [_]} ->
-            io:format("No RSU. Have USU (Last interrogation)~n"),
+            error_logger:info_msg("No RSU. Have USU (Last interrogation)"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
