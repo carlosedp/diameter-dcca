@@ -94,24 +94,24 @@ tmod(sctp) -> diameter_sctp.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 charge_event() ->
-    charge_event(gprs, {"5511985231234", 1, 100, 1000000}).
+    charge_event(gprs, {"5511985231234", "72412345678912", 1, 100, 1000000}).
 
-charge_event(gprs, {MSISDN, ServiceID, RatingGroup, VolumeBytes}) ->
+charge_event(gprs, {MSISDN, IMSI, ServiceID, RatingGroup, VolumeBytes}) ->
     SId = diameter:session_id(?L(?SVC_NAME)),
     ReqN = 0,
     % Generate initial CCR without MSCC
-    Ret = create_session(gprs, {initial, MSISDN, SId, ReqN}),
+    Ret = create_session(gprs, {initial, MSISDN, IMSI, SId, ReqN}),
     case Ret of
         {ok, _} ->
             io:format("CCR-INITIAL Success...~n"),
-            rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, 0, VolumeBytes}});
+            rate_service(gprs, {update, MSISDN, IMSI, SId, ReqN, {ServiceID, RatingGroup, 0, VolumeBytes}});
         {error, Err} ->
             io:format("Error: ~w~n", [Err])
     end,
     io:format("Event charged successfully.~n").
 
 %% Create the PDP context. First CCR does not contain MSCC
-create_session(gprs, {initial, MSISDN, SId, ReqN}) ->
+create_session(gprs, {initial, MSISDN, IMSI, SId, ReqN}) ->
     CCR = #rfc4006_cc_Gy_CCR{
         'Session-Id' = SId,
         'Auth-Application-Id' = 4,
@@ -122,13 +122,17 @@ create_session(gprs, {initial, MSISDN, SId, ReqN}) ->
         'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
                                 'Subscription-Id-Type' = ?'MSISDN',
                                 'Subscription-Id-Data' = MSISDN
+                            },
+                            #'rfc4006_cc_Gy_Subscription-Id' {
+                                'Subscription-Id-Type' = ?'IMSI',
+                                'Subscription-Id-Data' = IMSI
                             }],
         'Multiple-Services-Indicator' = [1]
     },
     diameter:call(?SVC_NAME, ?APP_ALIAS, CCR, []).
 
 %% Rate service
-rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
+rate_service(gprs, {update, MSISDN, IMSI, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
     ReqN2 = ReqN+1,
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
@@ -139,9 +143,13 @@ rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consumed
             'CC-Request-Number' = ReqN2,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],
             'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
-                                    'Subscription-Id-Type' = ?'MSISDN',
-                                    'Subscription-Id-Data' = MSISDN
-                                }],
+                                'Subscription-Id-Type' = ?'MSISDN',
+                                'Subscription-Id-Data' = MSISDN
+                            },
+                            #'rfc4006_cc_Gy_Subscription-Id' {
+                                'Subscription-Id-Type' = ?'IMSI',
+                                'Subscription-Id-Data' = IMSI
+                            }],
             'Called-Station-Id' = ["apn.com"],
             'Multiple-Services-Indicator' = [1]
             },
@@ -163,17 +171,17 @@ rate_service(gprs, {update, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consumed
             NewRemainingBytes = RemainingBytes-UsedUnits,
             if
                 (NewRemainingBytes > 0) ->
-                    rate_service(gprs, {update, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, UsedUnits, NewRemainingBytes}});
+                    rate_service(gprs, {update, MSISDN, IMSI, SId, ReqN2, {ServiceID, RatingGroup, UsedUnits, NewRemainingBytes}});
                 (NewRemainingBytes =< 0) ->
                     io:format("Last request: ~w | ~w | ~w ~n", [UsedUnits, RemainingBytes, NewRemainingBytes]),
-                    rate_service(gprs, {terminate, MSISDN, SId, ReqN2, {ServiceID, RatingGroup, RemainingBytes, 0}})
+                    rate_service(gprs, {terminate, MSISDN, IMSI, SId, ReqN2, {ServiceID, RatingGroup, RemainingBytes, 0}})
             end;
         {error, Err} ->
             io:format("Error: ~w~n", [Err])
     end,
     ok;
 
-rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
+rate_service(gprs, {terminate, MSISDN, IMSI, SId, ReqN, {ServiceID, RatingGroup, ConsumedBytes, RemainingBytes}}) ->
     ReqN2 = ReqN+1,
     CCR1 = generate_MSCC(ServiceID, RatingGroup, ConsumedBytes, RemainingBytes),
     CCR2 = CCR1#rfc4006_cc_Gy_CCR{
@@ -184,9 +192,13 @@ rate_service(gprs, {terminate, MSISDN, SId, ReqN, {ServiceID, RatingGroup, Consu
             'CC-Request-Number' = ReqN2,
             'Event-Timestamp' = [calendar:now_to_local_time(now())],
             'Subscription-Id' = [#'rfc4006_cc_Gy_Subscription-Id' {
-                                    'Subscription-Id-Type' = ?'MSISDN',
-                                    'Subscription-Id-Data' = MSISDN
-                                }],
+                                'Subscription-Id-Type' = ?'MSISDN',
+                                'Subscription-Id-Data' = MSISDN
+                            },
+                            #'rfc4006_cc_Gy_Subscription-Id' {
+                                'Subscription-Id-Type' = ?'IMSI',
+                                'Subscription-Id-Data' = IMSI
+                            }],
             'Called-Station-Id' = ["apn.com"]
             },
     Ret = diameter:call(?SVC_NAME, ?APP_ALIAS, CCR2, []),
