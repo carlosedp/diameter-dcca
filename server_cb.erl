@@ -112,21 +112,14 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
     error_logger:error_msg("Unsupported message.~n"),
     discard.
 
-getSubscriptionId(TYPE, [SUBS|T]) ->
-    % io:format("getSubscriptionId: ~w, ~w , ~w ~n",[TYPE, SUBS, T]),
-    #'rfc4006_cc_Gy_Subscription-Id'{
-        'Subscription-Id-Type' = Type,
-        'Subscription-Id-Data' = Data
-    } = SUBS,
-    case Type of
-        TYPE ->
-            Data;
-        _ ->
-            getSubscriptionId(TYPE, T)
-        end;
-getSubscriptionId(_, []) ->
-    err.
+getSubscriptionId(TYPE, [SUBS = #'rfc4006_cc_Gy_Subscription-Id'{'Subscription-Id-Type' = TYPE}|_]) ->
+    SUBS#'rfc4006_cc_Gy_Subscription-Id'.'Subscription-Id-Data';
 
+getSubscriptionId(TYPE, [_|T]) ->
+    getSubscriptionId(TYPE, T);
+
+getSubscriptionId(_, []) ->
+    subscription_not_found.
 
 process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp}) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
