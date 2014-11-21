@@ -112,6 +112,9 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
     error_logger:error_msg("Unsupported message.~n"),
     discard.
 
+%% Internal server functions
+
+%% Get subscription TYPE from SUBS list
 getSubscriptionId(TYPE, [SUBS = #'rfc4006_cc_Gy_Subscription-Id'{'Subscription-Id-Type' = TYPE}|_]) ->
     SUBS#'rfc4006_cc_Gy_Subscription-Id'.'Subscription-Id-Data';
 
@@ -121,7 +124,8 @@ getSubscriptionId(TYPE, [_|T]) ->
 getSubscriptionId(_, []) ->
     subscription_not_found.
 
-process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp}) ->
+%% Process MSCC
+process_mscc(RT, [MSCC|T], SessionData) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
     % io:format("Process_MSCC ~p~n", [MSCC]),
     % io:format("Process_MSCC T ~p~n", [T]),
@@ -134,38 +138,29 @@ process_mscc(RT, [MSCC|T], {APN, IMSI, MSISDN, Location, SessionId, EventTimesta
     % io:format("USU: ~w~n",[USU]),
     % io:format("RSU: ~w~n",[RSU]),
     case {RSU, USU} of
-        % Have RSU. No USU (First interrogation)
         {[_], []} ->
-            error_logger:info_msg("Have RSU. No USU (First interrogation)"),
-            ocs ! {self(), {initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup}}},
-            receive
-                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
-            end;
-            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(initial, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, 0, ServiceID, RatingGroup});
-        % Have RSU. Have USU (Next interrogation)
+            % Have RSU. No USU (First interrogation)
+            error_logger:info_msg("Have RSU. No USU (First interrogation)~n"),
+            ocs ! {self(), {initial, SessionData, {0, ServiceID, RatingGroup}}};
         {[_], [_]} ->
+            % Have RSU. Have USU (Next interrogation)
+            error_logger:info_msg("Have RSU. Have USU (Next interrogation)~n"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            error_logger:info_msg("Have RSU. Have USU (Next interrogation)"),
-            ocs ! {self(), {update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup}}},
-            receive
-                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
-            end;
-            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(update, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup});
-        % No RSU. Have USU (Last interrogation)
+            ocs ! {self(), {update, SessionData, {UsedUnits, ServiceID, RatingGroup}}};
         {[], [_]} ->
-            error_logger:info_msg("No RSU. Have USU (Last interrogation)"),
+            % No RSU. Have USU (Last interrogation)
+            error_logger:info_msg("No RSU. Have USU (Last interrogation)~n"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            ocs ! {self(), {terminate, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup}}},
-            receive
-                {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
-            end
-            %{ResultCode, GrantedUnits} = ocs_intm:generate_req(terminate, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp, UsedUnits, ServiceID, RatingGroup})
-        end,
-    [{ServiceID, RatingGroup, GrantedUnits, ResultCode}|process_mscc(RT, T, {APN, IMSI, MSISDN, Location, SessionId, EventTimestamp})];
+            ocs ! {self(), {terminate, SessionData, {UsedUnits, ServiceID, RatingGroup}}}
+    end,
+    receive
+        {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
+    end,
+    [{ServiceID, RatingGroup, GrantedUnits, ResultCode}|process_mscc(RT, T, SessionData)];
 
 process_mscc(_, [], {_, _, _, _, _, _}) ->
     [].
