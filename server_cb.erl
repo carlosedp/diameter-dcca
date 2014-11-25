@@ -56,17 +56,17 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
     #rfc4006_cc_Gy_CCR{
        'Session-Id' = SessionId,
        'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
-       'CC-Request-Type' = RT,
-       'CC-Request-Number' = RN,
+       'CC-Request-Type' = ReqType,
+       'CC-Request-Number' = ReqNum,
        % 'Service-Context-Id' = ServiceContextId,
        'Event-Timestamp' = EventTimestamp,
-       'Subscription-Id' = SUBSCRIPTION,
+       'Subscription-Id' = Subscription,
        'Multiple-Services-Credit-Control' = MSCC,
        'Called-Station-Id' = APN
        % 'Service-Information' = [ServiceInformation]
     } = Req,
-    MSISDN = getSubscriptionId(?'MSISDN', SUBSCRIPTION),
-    IMSI = getSubscriptionId(?'IMSI', SUBSCRIPTION),
+    MSISDN = getSubscriptionId(?'MSISDN', Subscription),
+    IMSI = getSubscriptionId(?'IMSI', Subscription),
     %io:format("Record:~n~p~n", [lists:zip(record_info(fields, rfc4006_cc_Gy_CCR), tl(tuple_to_list(Req)))]),
 
     error_logger:info_msg(
@@ -75,9 +75,9 @@ handle_request(#diameter_packet{msg = Req, errors = []}, _SvcName, {_, Caps})
         CCR OK: ~p
         MSCC: ~p
         ------------------------------------------------------------------------------
-        ", [RN, Req, MSCC]),
-    MSCC_Data = process_mscc(RT, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
-    {reply, answer(ok, RT, RN, SessionId, OH, OR, MSCC_Data)};
+        ", [ReqNum, Req, MSCC]),
+    MSCC_Data = process_mscc(ReqType, MSCC, {APN, IMSI, MSISDN, "10.0.0.1", SessionId, EventTimestamp}),
+    {reply, answer(ok, ReqType, ReqNum, SessionId, OH, OR, MSCC_Data)};
 
 
 %% ... or one that wasn't. 3xxx errors are answered by diameter itself
@@ -88,9 +88,9 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
     #diameter_caps{origin_host = {OH,_},
                    origin_realm = {OR,_}}
         = Caps,
-    #rfc4006_cc_Gy_CCR{'Session-Id' = Id,
-                    'CC-Request-Type' = RT,
-                    'CC-Request-Number'= RN,
+    #rfc4006_cc_Gy_CCR{'Session-Id' = SessionId,
+                    'CC-Request-Type' = ReqType,
+                    'CC-Request-Number'= ReqNum,
                     'Multiple-Services-Credit-Control' = MSCC,
                     'Called-Station-Id' = APN
                     }
@@ -103,8 +103,8 @@ handle_request(#diameter_packet{msg = Req, errors = Err}, _SvcName, {_, Caps})
         APN: ~p
         MSCC: ~p
         ------------------------------------------------------------------------------
-        ", [RN, Req, Err, APN, MSCC]),
-    {reply, answer(err, RT, RN, Id, OH, OR, [])};
+        ", [ReqNum, Req, Err, APN, MSCC]),
+    {reply, answer(err, ReqType, ReqNum, SessionId, OH, OR, [])};
 
 %% Should really reply to other base messages that we don't support
 %% but simply discard them instead.
@@ -114,25 +114,25 @@ handle_request(#diameter_packet{}, _SvcName, {_,_}) ->
 
 %% Internal server functions
 
-%% Get subscription TYPE from SUBS list
-getSubscriptionId(TYPE, [SUBS = #'rfc4006_cc_Gy_Subscription-Id'{'Subscription-Id-Type' = TYPE}|_]) ->
-    SUBS#'rfc4006_cc_Gy_Subscription-Id'.'Subscription-Id-Data';
+%% Get Subscription Type from Subs list
+getSubscriptionId(Type, [Subs = #'rfc4006_cc_Gy_Subscription-Id'{'Subscription-Id-Type' = Type}|_]) ->
+    Subs#'rfc4006_cc_Gy_Subscription-Id'.'Subscription-Id-Data';
 
-getSubscriptionId(TYPE, [_|T]) ->
-    getSubscriptionId(TYPE, T);
+getSubscriptionId(Type, [_|T]) ->
+    getSubscriptionId(Type, T);
 
 getSubscriptionId(_, []) ->
     subscription_not_found.
 
 %% Process MSCC
-process_mscc(RT, [MSCC|T], SessionData) ->
+process_mscc(ReqType, [MSCC|T], SessionData) ->
     common_stats:inc(?DIA_STATS_TAB, dia_input_update_OK),
     % io:format("Process_MSCC ~p~n", [MSCC]),
     % io:format("Process_MSCC T ~p~n", [T]),
     #'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
         'Used-Service-Unit' = USU,
         'Requested-Service-Unit' = RSU,
-        'Service-Identifier' = [ServiceID],
+        'Service-Identifier' = [ServiceId],
         'Rating-Group' = [RatingGroup]
     } = MSCC,
     % io:format("USU: ~w~n",[USU]),
@@ -141,28 +141,28 @@ process_mscc(RT, [MSCC|T], SessionData) ->
         {[_], []} ->
             % Have RSU. No USU (First interrogation)
             error_logger:info_msg("Have RSU. No USU (First interrogation)~n"),
-            ocs ! {self(), {initial, SessionData, {0, ServiceID, RatingGroup}}};
+            ocs ! {self(), {initial, SessionData, {0, ServiceId, RatingGroup}}};
         {[_], [_]} ->
             % Have RSU. Have USU (Next interrogation)
             error_logger:info_msg("Have RSU. Have USU (Next interrogation)~n"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            ocs ! {self(), {update, SessionData, {UsedUnits, ServiceID, RatingGroup}}};
+            ocs ! {self(), {update, SessionData, {UsedUnits, ServiceId, RatingGroup}}};
         {[], [_]} ->
             % No RSU. Have USU (Last interrogation)
             error_logger:info_msg("No RSU. Have USU (Last interrogation)~n"),
             [#'rfc4006_cc_Gy_Used-Service-Unit' {
              'CC-Total-Octets' = [UsedUnits]
             }] = USU,
-            ocs ! {self(), {terminate, SessionData, {UsedUnits, ServiceID, RatingGroup}}}
+            ocs ! {self(), {terminate, SessionData, {UsedUnits, ServiceId, RatingGroup}}}
     end,
     receive
         {ResultCode, GrantedUnits} -> {ResultCode, GrantedUnits}
     end,
-    [{ServiceID, RatingGroup, GrantedUnits, ResultCode}|process_mscc(RT, T, SessionData)];
+    [{ServiceId, RatingGroup, GrantedUnits, ResultCode}|process_mscc(ReqType, T, SessionData)];
 
-process_mscc(_, [], {_, _, _, _, _, _}) ->
+process_mscc(_, [], _) ->
     [].
 
 %% ---------------------------------------------------------------------------
@@ -172,31 +172,31 @@ process_mscc(_, [], {_, _, _, _, _, _}) ->
 %% typically just choose one, and this has nothing to do with the how
 %% client.erl sends.
 
-answer(ok, RT, RN, Id, OH, OR, MSCC) ->
+answer(ok, ReqType, ReqNum, SessionId, OH, OR, MSCC) ->
   common_stats:inc(?DIA_STATS_TAB, event_OK),
   CCA = #rfc4006_cc_Gy_CCA {
     'Result-Code' = 2001, %% DIAMETER_SUCCESS
     'Origin-Host' = OH,
     'Origin-Realm' = OR,
-    'Session-Id' = Id,
+    'Session-Id' = SessionId,
     'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
-    'CC-Request-Type' = RT,
-    'CC-Request-Number' = RN,
+    'CC-Request-Type' = ReqType,
+    'CC-Request-Number' = ReqNum,
     %'Termination-Cause' = [] %% Only used on TERMINATE
     'Multiple-Services-Credit-Control' = mscc_answer(MSCC)
   },
   CCA;
 
-answer(err, RT, RN, Id, OH, OR, []) ->
+answer(err, ReqType, ReqNum, SessionId, OH, OR, []) ->
     common_stats:inc(?DIA_STATS_TAB, event_ERR),
     CCA = #rfc4006_cc_Gy_CCA {
       'Result-Code' = 5012, %% DIAMETER_UNABLE_TO_COMPLY
       'Origin-Host' = OH,
       'Origin-Realm' = OR,
-      'Session-Id' = Id,
+      'Session-Id' = SessionId,
       'Auth-Application-Id' = ?DCCA_APPLICATION_ID,
-      'CC-Request-Type' = RT,
-      'CC-Request-Number' = RN
+      'CC-Request-Type' = ReqType,
+      'CC-Request-Number' = ReqNum
     },
     CCA.
 
@@ -204,7 +204,7 @@ mscc_answer([MSCC|T]) ->
     % io:format("mscc_answer:~n"),
     % io:format("MSCC: ~p~n",[MSCC]),
     % io:format("T: ~w~n",[T]),
-    {ServiceID, RatingGroup, GrantedUnits, _ResultCode} = MSCC,
+    {ServiceId, RatingGroup, GrantedUnits, _ResultCode} = MSCC,
     [#'rfc4006_cc_Gy_Multiple-Services-Credit-Control' {
       'Granted-Service-Unit' = [#'rfc4006_cc_Gy_Granted-Service-Unit' {
         'CC-Total-Octets' = [GrantedUnits],
@@ -213,7 +213,7 @@ mscc_answer([MSCC|T]) ->
         'CC-Service-Specific-Units' = [],
         'AVP' = []
       }],
-      'Service-Identifier' = [ServiceID],
+      'Service-Identifier' = [ServiceId],
       'Rating-Group' = [RatingGroup],
       'Validity-Time' = [3600],
       'Result-Code' = [2001]

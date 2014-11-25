@@ -1,7 +1,5 @@
 -module(ocs).
 
-%-export([generate_req/2]).
-
 -export([start/1]).
 
 start(_Type) ->
