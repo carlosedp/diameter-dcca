@@ -17,26 +17,16 @@
 # %CopyrightEnd%
 #
 
-APPS  = client server
-SUPPORT = common_stats ocs
-CALLBACKS = $(APPS:%=%_cb)
+ERLC=erlc
+ERLCINCLUDES=-pa ./dict
+ERLCFLAGS=-Wall +debug_info
 
-MODULES   = $(APPS) $(APPS:%=%_cb) $(SUPPORT)
-
-BEAM = $(MODULES:%=%.beam)
-
-DICTS = rfc4006_cc_Gy
-
-all: $(BEAM)
-
-%.beam: %.erl dicts
-	erlc -pa ./dict -Wall +debug_info $<
-
-dicts:
-	$(MAKE) -C dict
+all:
+	@ $(MAKE) -C dict
+	@ $(ERLC) $(ERLCINCLUDES) $(ERLCFLAGS) *.erl ;
 
 clean:
-	rm -f $(BEAM) $(DICTS).beam
-	$(MAKE) -C dict clean
+	@ rm -rf *.beam erl_crash.dump
+	@ $(MAKE) -C dict clean
 
 .PHONY: all clean
