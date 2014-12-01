@@ -6,7 +6,7 @@
 
 -include_lib("diameter/include/diameter.hrl").
 -include_lib("diameter/include/diameter_gen_base_rfc3588.hrl").
--include_lib("rfc4006_cc_Gy.hrl").
+-include_lib("dict/rfc4006_cc_Gy.hrl").
 -include_lib("diameter_settings.hrl").
 
 -define(DIA_STATS_TAB, dcca_stats).

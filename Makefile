@@ -30,11 +30,10 @@ DICTS = rfc4006_cc_Gy
 all: $(BEAM)
 
 %.beam: %.erl dicts
-	erlc -Wall +debug_info $<
+	erlc -pa ./dict -Wall +debug_info $<
 
 dicts:
 	$(MAKE) -C dict
-	cp dict/$(DICTS).hrl dict/$(DICTS).beam dict/$(DICTS).erl .
 
 clean:
 	rm -f $(BEAM) $(DICTS).beam
