@@ -15,7 +15,7 @@ To start the modules use:
 ## Client
     erl
     client:start().
-    client:charge_event().
+    client:test().
 
 ## Seagull
 
