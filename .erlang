@@ -1,1 +1,2 @@
+io:format("Load from .erlang file. Adding ./dict to the path.~n").
 code:add_patha("./dict").
