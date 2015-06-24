@@ -25,7 +25,7 @@
 -export([create_session_tab/0,
          stop_session_tab/0,
          clear_session_tab/0,
-         get_resp/3]).
+         get_resp/3, monotonic_time/0]).
 
 create_session_tab() ->
     ets:new(?SESSION_TAB, [set, public, named_table]).
@@ -62,7 +62,7 @@ get_resp(SID, RT, RN, Session_Tid) ->
 %% Internal functions
 %% ====================================================================
 check_sesion(Session_Tid, SID, RN) ->
-%%  T1 = erlang:now(),
+%%  T1 = monotonic_time(),
     Res = case ets:lookup(Session_Tid, SID) of
               [] -> new_sid;
               [{SID, {_OldRT, OldRN}}|_] ->
@@ -71,5 +71,19 @@ check_sesion(Session_Tid, SID, RN) ->
                       true -> old_msg
                   end
           end,
-%%  io:format("spend ~p ms ~n", [timer:now_diff(erlang:now(), T1)/1000]),
+%%  io:format("spend ~p ms ~n", [(monotonic_time() - T1)/1000]),
     Res.
+
+
+monotonic_time() ->
+    try
+    erlang:monotonic_time()
+    catch
+    error:undef ->
+        %% Use Erlang system time as monotonic time
+        erlang_system_time_fallback()
+    end.
+
+erlang_system_time_fallback() ->
+    {MS, S, US} = erlang:now(),
+    (MS*1000000+S)*1000000+US.
