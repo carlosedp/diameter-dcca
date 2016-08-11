@@ -2,6 +2,8 @@
 
 This repository contains an example DCCA application server and client built in Erlang.
 
+There is also an updated version of the server and client modules as OTP applications. They can be fetched from my repositories https://github.com/carlosedp/dcca-server-OTP and https://github.com/carlosedp/dcca-client-OTP.
+
 To build the modules and diameter dictionaries, use the provided Makefile.
 
 To start the modules use:
